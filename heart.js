@@ -2,7 +2,7 @@
  * Heart Particle Animation
  * Renders a heart shape made of twinkling particles using Canvas 2D.
  * Parametric heart equation: x = 16sin^3(t), y = 13cos(t) - 5cos(2t) - 2cos(3t) - cos(4t)
- * Heartbeat: sinusoidal scale pulse mimicking a real heartbeat rhythm (lub-dub)
+ * Heartbeat: particles scatter outward on each beat, then converge back
  */
 
 (function () {
@@ -13,22 +13,25 @@
 
   // --- Configuration ---
   const CONFIG = {
-    particleCount: 1500,       // Number of particles forming the heart
-    heartScale: 12,            // Size multiplier for the heart shape
-    driftSpeed: 0.12,          // How fast particles drift (pixels/frame)
-    driftAmplitude: 1.5,       // How far particles drift from center
-    twinkleSpeed: 0.012,       // Speed of opacity oscillation
-    twinkleRange: [0.5, 1.0],  // Min/max opacity during twinkle
+    particleCount: 1500,
+    heartScale: 12,
+    driftSpeed: 0.1,
+    driftAmplitude: 1,
+    twinkleSpeed: 0.012,
+    twinkleRange: [0.5, 1.0],
     colorStops: [
-      { r: 50,  g: 100, b: 200 },   // Richer deep blue
-      { r: 120, g: 60,  b: 210 },   // Vivid purple
-      { r: 210, g: 70,  b: 150 },   // Bright pink
-      { r: 255, g: 140, b: 170 },   // Soft light pink
-      { r: 90,  g: 80,  b: 190 },   // Deep indigo
+      { r: 50,  g: 100, b: 200 },   // Deep blue
+      { r: 120, g: 60,  b: 210 },   // Purple
+      { r: 210, g: 70,  b: 150 },   // Pink
+      { r: 255, g: 140, b: 170 },   // Light pink
+      { r: 90,  g: 80,  b: 190 },   // Indigo
     ],
-    glowSize: 5,               // Particle glow radius
-    heartbeatSpeed: 0.003,     // Speed of the heartbeat pulse
-    heartbeatIntensity: 0.06,   // Scale amplitude of heartbeat (6% pulse)
+    glowSize: 5,
+    heartbeatSpeed: 0.003,
+    scatterRadius: 35,             // How far particles scatter on beat
+    scatterDuration: 12,           // Frames for scatter to peak
+    scatterRecover: 30,            // Frames to recover to heart shape
+    innerParticleCount: 600,       // Extra particles filling the center
   };
 
   // --- Color utility ---
@@ -54,22 +57,45 @@
   }
 
   // --- Heart parametric equation ---
-  // Returns (x, y) on the heart outline for parameter t in [0, 2pi]
   function heartPosition(t) {
     const x = 16 * Math.pow(Math.sin(t), 3);
     const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
     return { x, y };
   }
 
-  // --- Heartbeat scale function ---
-  // Mimics a real heartbeat: strong "lub" followed by a weaker "dub"
-  // Period ~1 second at heartbeatSpeed=0.003
-  function heartbeatScale(time) {
+  // --- Heartbeat detection ---
+  // Returns a scatter factor: 0 = fully converged, 1 = maximum scattered
+  // Tracks the double-pulse heartbeat and triggers scatter on peaks
+  let lastBeatPhase = 0;
+  let scatterFactor = 0;
+  let scatterFrame = 0;
+  let recovering = false;
+
+  function heartbeatState(time) {
     const t = (time * CONFIG.heartbeatSpeed) % (Math.PI * 2);
-    // Double-pulse: first peak at t≈0, second smaller peak at t≈0.4π
+    // Double-pulse
     const beat1 = Math.exp(-3 * Math.pow(Math.sin(t * 0.5), 2));
     const beat2 = Math.exp(-5 * Math.pow(Math.sin((t - Math.PI * 0.4) * 0.5), 2)) * 0.6;
-    return 1 + CONFIG.heartbeatIntensity * (beat1 + beat2);
+    const intensity = beat1 + beat2;
+
+    // Detect beat peak: if intensity crosses threshold going up
+    if (intensity > 0.5 && !recovering) {
+      scatterFactor = 1.0;
+      scatterFrame = 0;
+      recovering = true;
+    }
+
+    // Recover: ease back to 0 over scatterRecover frames
+    if (recovering) {
+      scatterFrame++;
+      scatterFactor = 1.0 - (scatterFrame / CONFIG.scatterRecover);
+      if (scatterFrame >= CONFIG.scatterRecover) {
+        scatterFactor = 0;
+        recovering = false;
+      }
+    }
+
+    return { intensity, scatter: scatterFactor };
   }
 
   // --- Resize handling ---
@@ -82,14 +108,17 @@
     height = canvas.height = window.innerHeight;
     centerX = width / 2;
     centerY = height / 2;
-    // Heart size scales with the smaller screen dimension
     heartSize = Math.min(width, height) * 0.35;
 
-    // Recreate particles and stars with new scale
     particles.length = 0;
     for (let i = 0; i < CONFIG.particleCount; i++) {
-      particles.push(new Particle());
+      particles.push(new HeartParticle());
     }
+    // Add inner fill particles
+    for (let i = 0; i < CONFIG.innerParticleCount; i++) {
+      particles.push(new InnerParticle());
+    }
+
     stars.length = 0;
     for (let i = 0; i < 80; i++) {
       stars.push(new Star());
@@ -98,33 +127,28 @@
 
   window.addEventListener('resize', resize);
 
-  // --- Particle class ---
-  class Particle {
+  // --- Outer heart particles (outline + some interior) ---
+  class HeartParticle {
     constructor() {
       this.reset();
     }
 
     reset() {
-      // Random parameter on the heart curve [0, 2pi]
       const t = Math.random() * Math.PI * 2;
       const pos = heartPosition(t);
 
-      // Base position on heart outline, scaled
       this.baseX = pos.x * (heartSize / 12);
       this.baseY = pos.y * (heartSize / 12);
 
-      // Random fill: some particles on the outline, some inside
       const fillFactor = Math.random();
-      if (fillFactor < 0.6) {
-        // 60% on the outline (within a band)
+      if (fillFactor < 0.55) {
         const band = (Math.random() - 0.5) * 3;
         this.targetX = this.baseX + band;
         this.targetY = this.baseY + band;
       } else {
-        // 40% randomly distributed inside the heart
         const innerT = Math.random() * Math.PI * 2;
         const innerPos = heartPosition(innerT);
-        const innerScale = Math.pow(Math.random(), 2); // Bias toward center
+        const innerScale = Math.pow(Math.random(), 2);
         this.targetX = innerPos.x * (heartSize / 12) * innerScale;
         this.targetY = innerPos.y * (heartSize / 12) * innerScale;
       }
@@ -132,56 +156,120 @@
       this.x = this.targetX;
       this.y = this.targetY;
 
-      // Drift offsets
       this.driftPhase = Math.random() * Math.PI * 2;
       this.driftAngle = Math.random() * Math.PI * 2;
-
-      // Twinkle
       this.twinklePhase = Math.random() * Math.PI * 2;
       this.twinkleSpeed = CONFIG.twinkleSpeed * (0.5 + Math.random());
 
-      // Color: pick from gradient based on position angle
       const colorT = (Math.atan2(this.targetY, this.targetX) / (Math.PI * 2) + 1) % 1;
       this.color = lerpColor(CONFIG.colorStops, colorT);
-
-      // Size
       this.size = 1 + Math.random() * 2.5;
+
+      // Scatter direction: outward from heart center
+      const angle = Math.atan2(this.targetY, this.targetX) + (Math.random() - 0.5) * 1.2;
+      this.scatterVx = Math.cos(angle);
+      this.scatterVy = Math.sin(angle);
     }
 
-    update(time, beat) {
-      // Drift motion
+    update(time, scatter) {
+      // Drift
       const driftX = Math.sin(time * CONFIG.driftSpeed + this.driftPhase) * CONFIG.driftAmplitude;
       const driftY = Math.cos(time * CONFIG.driftSpeed * 0.7 + this.driftPhase) * CONFIG.driftAmplitude;
       this.x = this.targetX + Math.cos(this.driftAngle) * driftX;
       this.y = this.targetY + Math.sin(this.driftAngle) * driftY;
 
-      // Apply heartbeat scale to position (relative to center)
-      this.x *= beat;
-      this.y *= beat;
-
-      // Twinkle
-      const twinkle = Math.sin(time * this.twinkleSpeed + this.twinklePhase);
-      this.alpha = CONFIG.twinkleRange[0] +
-        ((twinkle + 1) / 2) * (CONFIG.twinkleRange[1] - CONFIG.twinkleRange[0]);
+      // Scatter outward
+      if (scatter > 0) {
+        this.x += this.scatterVx * CONFIG.scatterRadius * scatter;
+        this.y += this.scatterVy * CONFIG.scatterRadius * scatter;
+      }
     }
 
     draw(ctx) {
+      // Twinkle
+      const twinkle = Math.sin(time * this.twinkleSpeed + this.twinklePhase);
+      const alpha = CONFIG.twinkleRange[0] +
+        ((twinkle + 1) / 2) * (CONFIG.twinkleRange[1] - CONFIG.twinkleRange[0]);
+
       ctx.beginPath();
       ctx.arc(centerX + this.x, centerY + this.y, this.size, 0, Math.PI * 2);
-      ctx.fillStyle = colorStr(this.color, this.alpha);
+      ctx.fillStyle = colorStr(this.color, alpha);
       ctx.fill();
 
-      // Glow effect
       if (this.size > 2) {
         ctx.beginPath();
         ctx.arc(centerX + this.x, centerY + this.y, this.size + CONFIG.glowSize, 0, Math.PI * 2);
-        ctx.fillStyle = colorStr(this.color, this.alpha * 0.15);
+        ctx.fillStyle = colorStr(this.color, alpha * 0.15);
         ctx.fill();
       }
     }
   }
 
-  // --- Background stars (ambient sparkle) ---
+  // --- Inner fill particles (dense gradient filling the heart interior) ---
+  class InnerParticle {
+    constructor() {
+      this.reset();
+    }
+
+    reset() {
+      // Pick a random point inside the heart
+      const t = Math.random() * Math.PI * 2;
+      const pos = heartPosition(t);
+      const scale = Math.pow(Math.random(), 0.6); // Bias toward edges for even fill
+      this.targetX = pos.x * (heartSize / 12) * scale;
+      this.targetY = pos.y * (heartSize / 12) * scale;
+
+      this.x = this.targetX;
+      this.y = this.targetY;
+
+      this.driftPhase = Math.random() * Math.PI * 2;
+      this.driftAngle = Math.random() * Math.PI * 2;
+      this.twinklePhase = Math.random() * Math.PI * 2;
+      this.twinkleSpeed = CONFIG.twinkleSpeed * (0.3 + Math.random() * 0.7);
+
+      // Color: inner particles use a warmer gradient (pink → magenta → rose)
+      const innerColorT = Math.random();
+      if (innerColorT < 0.33) {
+        this.color = { r: 255, g: 120, b: 160 };   // Warm pink
+      } else if (innerColorT < 0.66) {
+        this.color = { r: 240, g: 80,  b: 140 };   // Rose
+      } else {
+        this.color = { r: 220, g: 60,  b: 180 };   // Magenta
+      }
+
+      this.size = 0.8 + Math.random() * 1.8;
+
+      // Scatter direction
+      const angle = Math.atan2(this.targetY, this.targetX) + (Math.random() - 0.5) * 1.5;
+      this.scatterVx = Math.cos(angle);
+      this.scatterVy = Math.sin(angle);
+    }
+
+    update(time, scatter) {
+      const driftX = Math.sin(time * CONFIG.driftSpeed + this.driftPhase) * CONFIG.driftAmplitude;
+      const driftY = Math.cos(time * CONFIG.driftSpeed * 0.7 + this.driftPhase) * CONFIG.driftAmplitude;
+      this.x = this.targetX + Math.cos(this.driftAngle) * driftX;
+      this.y = this.targetY + Math.sin(this.driftAngle) * driftY;
+
+      if (scatter > 0) {
+        this.x += this.scatterVx * CONFIG.scatterRadius * scatter * 0.8;
+        this.y += this.scatterVy * CONFIG.scatterRadius * scatter * 0.8;
+      }
+    }
+
+    draw(ctx) {
+      const twinkle = Math.sin(time * this.twinkleSpeed + this.twinklePhase);
+      const alpha = CONFIG.twinkleRange[0] +
+        ((twinkle + 1) / 2) * (CONFIG.twinkleRange[1] - CONFIG.twinkleRange[0]);
+
+      ctx.beginPath();
+      ctx.arc(centerX + this.x, centerY + this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = colorStr(this.color, alpha);
+      ctx.fill();
+    }
+  }
+
+  // --- Background stars ---
   class Star {
     constructor() {
       this.x = Math.random() * width;
@@ -210,24 +298,21 @@
 
   function animate() {
     time++;
-    const beat = heartbeatScale(time);
+    const { scatter } = heartbeatState(time);
     ctx.clearRect(0, 0, width, height);
 
-    // Draw ambient stars
     for (const star of stars) {
       star.draw(ctx, time);
     }
 
-    // Draw particles
     for (const p of particles) {
-      p.update(time, beat);
+      p.update(time, scatter);
       p.draw(ctx);
     }
 
     requestAnimationFrame(animate);
   }
 
-  // Initialize after everything is defined
   resize();
   animate();
 })();
