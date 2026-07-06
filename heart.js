@@ -214,11 +214,6 @@
     isDragging = false;
   });
 
-  // --- Sort particles by Z-depth for painter's algorithm ---
-  function sortByDepth(a, b) {
-    return (a.zDepth || 0) - (b.zDepth || 0);
-  }
-
   // --- Outer heart particles (surface + slight scatter) ---
   class HeartParticle {
     constructor() {
@@ -265,9 +260,6 @@
         this.scatterVy = 0;
         this.scatterVz = 1;
       }
-
-      // Depth for sorting
-      this.zDepth = this.targetZ;
     }
 
     update(time, scatter) {
@@ -296,9 +288,9 @@
       const rz = rotated.z * pulseScale;
       const rotated2 = rotateX(rx, ry, rz, tiltX || 0);
 
-      const sx = rx;
-      const sy = ry;
-      const sz = rz;
+      const sx = rotated2.x;
+      const sy = rotated2.y;
+      const sz = rotated2.z;
 
       // Store rotated Z for depth-based alpha
       this.rotatedZ = sz;
@@ -386,8 +378,6 @@
         this.scatterVy = 0;
         this.scatterVz = 1;
       }
-
-      this.zDepth = this.targetZ;
     }
 
     update(time, scatter) {
@@ -414,9 +404,9 @@
       const rz = rotated.z * pulseScale;
       const rotated2 = rotateX(rx, ry, rz, tiltX || 0);
 
-      const sx = rx;
-      const sy = ry;
-      const sz = rz;
+      const sx = rotated2.x;
+      const sy = rotated2.y;
+      const sz = rotated2.z;
 
       // Store rotated Z for depth-based alpha
       this.rotatedZ = sz;
