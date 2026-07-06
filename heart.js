@@ -13,7 +13,7 @@
 
   // --- Configuration ---
   const CONFIG = {
-    particleCount: 1500,
+    surfaceParticleCount: 1500,
     innerParticleCount: 600,
     driftSpeed: 0.04,
     driftAmplitude: 1,
@@ -104,7 +104,6 @@
   }
 
   // --- Heartbeat detection ---
-  let lastBeatPhase = 0;
   let scatterFactor = 0;
   let scatterFrame = 0;
   let recovering = false;
@@ -150,7 +149,7 @@
     heartSize = Math.min(width, height) * 0.35;
 
     particles.length = 0;
-    for (let i = 0; i < CONFIG.particleCount; i++) {
+    for (let i = 0; i < CONFIG.surfaceParticleCount; i++) {
       particles.push(new HeartParticle());
     }
     // Add inner fill particles
@@ -164,7 +163,11 @@
     }
   }
 
-  window.addEventListener('resize', resize);
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(resize, 200);
+  });
 
   // --- Sort particles by Z-depth for painter's algorithm ---
   function sortByDepth(a, b) {
@@ -245,6 +248,9 @@
       const rotated = rotateY(this.x, this.y, this.z, rotationAngle);
       const rotated2 = rotateX(rotated.x, rotated.y, rotated.z, 0.15);
 
+      // Store rotated Z for depth-based alpha
+      this.rotatedZ = rotated2.z;
+
       // Project to 2D
       const projected = project(rotated2.x, rotated2.y, rotated2.z);
 
@@ -258,7 +264,7 @@
         ((twinkle + 1) / 2) * (CONFIG.twinkleRange[1] - CONFIG.twinkleRange[0]);
 
       // Adjust alpha based on depth for atmosphere
-      const depthAlpha = 0.4 + 0.6 * ((rotated2.z + 100) / 200);
+      const depthAlpha = 0.4 + 0.6 * ((this.rotatedZ + 100) / 200);
       const finalAlpha = Math.max(0.1, Math.min(1, alpha * depthAlpha));
 
       ctx.beginPath();
@@ -353,6 +359,9 @@
       const rotated = rotateY(this.x, this.y, this.z, rotationAngle);
       const rotated2 = rotateX(rotated.x, rotated.y, rotated.z, 0.15);
 
+      // Store rotated Z for depth-based alpha
+      this.rotatedZ = rotated2.z;
+
       // Project to 2D
       const projected = project(rotated2.x, rotated2.y, rotated2.z);
 
@@ -364,7 +373,7 @@
       const alpha = CONFIG.twinkleRange[0] +
         ((twinkle + 1) / 2) * (CONFIG.twinkleRange[1] - CONFIG.twinkleRange[0]);
 
-      const depthAlpha = 0.4 + 0.6 * ((rotated2.z + 100) / 200);
+      const depthAlpha = 0.4 + 0.6 * ((this.rotatedZ + 100) / 200);
       const finalAlpha = Math.max(0.1, Math.min(1, alpha * depthAlpha));
 
       ctx.beginPath();
@@ -409,7 +418,12 @@
     }
 
     // Sort particles by Z-depth for proper layering
-    particles.sort(sortByDepth);
+    for (const p of particles) {
+      const rotated = rotateY(p.x, p.y, p.z, rotationAngle);
+      const rotated2 = rotateX(rotated.x, rotated.y, rotated.z, 0.15);
+      p.rotatedZ = rotated2.z;
+    }
+    particles.sort((a, b) => b.rotatedZ - a.rotatedZ);
 
     // Draw particles
     for (const p of particles) {
