@@ -26,7 +26,6 @@
       { r: 100, g: 100, b: 200 },  // Indigo
     ],
     glowSize: 4,              // Particle glow radius
-    bgColor: null,            // Computed at runtime
   };
 
   // --- Resize handling ---
@@ -39,7 +38,16 @@
     centerY = height / 2;
     // Heart size scales with the smaller screen dimension
     heartSize = Math.min(width, height) * 0.35;
-    CONFIG.heartScale = heartSize / 12;
+
+    // Recreate particles and stars with new scale
+    particles.length = 0;
+    for (let i = 0; i < CONFIG.particleCount; i++) {
+      particles.push(new Particle());
+    }
+    stars.length = 0;
+    for (let i = 0; i < 80; i++) {
+      stars.push(new Star());
+    }
   }
 
   window.addEventListener('resize', resize);
@@ -87,8 +95,8 @@
       const pos = heartPosition(t);
 
       // Base position on heart outline, scaled
-      this.baseX = pos.x * CONFIG.heartScale;
-      this.baseY = pos.y * CONFIG.heartScale;
+      this.baseX = pos.x * (heartSize / 12);
+      this.baseY = pos.y * (heartSize / 12);
 
       // Random fill: some particles on the outline, some inside
       const fillFactor = Math.random();
@@ -101,9 +109,9 @@
         // 30% randomly distributed inside the heart
         const innerT = Math.random() * Math.PI * 2;
         const innerPos = heartPosition(innerT);
-        const innerScale = Math.pow(Math.random(), 0.5); // Bias toward center
-        this.targetX = innerPos.x * CONFIG.heartScale * innerScale;
-        this.targetY = innerPos.y * CONFIG.heartScale * innerScale;
+        const innerScale = Math.pow(Math.random(), 2); // Bias toward center
+        this.targetX = innerPos.x * (heartSize / 12) * innerScale;
+        this.targetY = innerPos.y * (heartSize / 12) * innerScale;
       }
 
       this.x = this.targetX;
