@@ -15,7 +15,7 @@
   const CONFIG = {
     particleCount: 1500,
     heartScale: 12,
-    driftSpeed: 0.1,
+    driftSpeed: 0.06,
     driftAmplitude: 1,
     twinkleSpeed: 0.012,
     twinkleRange: [0.5, 1.0],
@@ -27,7 +27,7 @@
       { r: 90,  g: 80,  b: 190 },   // Indigo
     ],
     glowSize: 5,
-    heartbeatSpeed: 0.003,
+    heartbeatSpeed: 0.0015,
     scatterRadius: 35,             // How far particles scatter on beat
     scatterDuration: 12,           // Frames for scatter to peak
     scatterRecover: 30,            // Frames to recover to heart shape
