@@ -1,0 +1,5 @@
+[      95ms] ReferenceError: Cannot access 'particles' before initialization
+    at resize (http://localhost:8765/heart.js:43:5)
+    at http://localhost:8765/heart.js:54:3
+    at http://localhost:8765/heart.js:218:3
+[     117ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://localhost:8765/favicon.ico:0

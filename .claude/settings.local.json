@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git config *)",
+      "mcp__playwright__browser_navigate",
+      "Bash(python -m http.server 8080)",
+      "mcp__playwright__browser_resize",
+      "Bash(curl -s http://localhost:8080/index.html)",
+      "Bash(pkill -f \"python -m http.server\")",
+      "Bash(git -C D:/angent status)",
+      "Bash(python -m http.server 8765)",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_console_messages",
+      "Bash(pkill -f \"python -m http.server 8765\")"
+    ]
+  }
+}

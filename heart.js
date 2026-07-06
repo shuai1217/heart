@@ -12,46 +12,21 @@
 
   // --- Configuration ---
   const CONFIG = {
-    particleCount: 600,       // Number of particles forming the heart
+    particleCount: 800,       // Number of particles forming the heart
     heartScale: 12,           // Size multiplier for the heart shape
-    driftSpeed: 0.3,          // How fast particles drift (pixels/frame)
-    driftAmplitude: 3,        // How far particles drift from center
-    twinkleSpeed: 0.02,       // Speed of opacity oscillation
-    twinkleRange: [0.3, 1.0], // Min/max opacity during twinkle
+    driftSpeed: 0.15,         // How fast particles drift (pixels/frame)
+    driftAmplitude: 2,        // How far particles drift from center
+    twinkleSpeed: 0.015,      // Speed of opacity oscillation
+    twinkleRange: [0.4, 1.0], // Min/max opacity during twinkle
     colorStops: [
-      { r: 70,  g: 130, b: 220 },  // Deep blue
-      { r: 138, g: 70,  b: 220 },  // Purple
-      { r: 200, g: 80,  b: 160 },  // Pink
-      { r: 255, g: 150, b: 180 },  // Light pink
-      { r: 100, g: 100, b: 200 },  // Indigo
+      { r: 50,  g: 100, b: 200 },   // Richer deep blue
+      { r: 120, g: 60,  b: 210 },   // Vivid purple
+      { r: 210, g: 70,  b: 150 },   // Bright pink
+      { r: 255, g: 140, b: 170 },   // Soft light pink
+      { r: 90,  g: 80,  b: 190 },   // Deep indigo
     ],
-    glowSize: 4,              // Particle glow radius
+    glowSize: 5,              // Particle glow radius
   };
-
-  // --- Resize handling ---
-  let width, height, centerX, centerY, heartSize;
-
-  function resize() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-    centerX = width / 2;
-    centerY = height / 2;
-    // Heart size scales with the smaller screen dimension
-    heartSize = Math.min(width, height) * 0.35;
-
-    // Recreate particles and stars with new scale
-    particles.length = 0;
-    for (let i = 0; i < CONFIG.particleCount; i++) {
-      particles.push(new Particle());
-    }
-    stars.length = 0;
-    for (let i = 0; i < 80; i++) {
-      stars.push(new Star());
-    }
-  }
-
-  window.addEventListener('resize', resize);
-  resize();
 
   // --- Color utility ---
   function lerpColor(colors, t) {
@@ -82,6 +57,30 @@
     const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
     return { x, y };
   }
+
+  // --- Resize handling ---
+  let width, height, centerX, centerY, heartSize;
+
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+    centerX = width / 2;
+    centerY = height / 2;
+    // Heart size scales with the smaller screen dimension
+    heartSize = Math.min(width, height) * 0.35;
+
+    // Recreate particles and stars with new scale
+    particles.length = 0;
+    for (let i = 0; i < CONFIG.particleCount; i++) {
+      particles.push(new Particle());
+    }
+    stars.length = 0;
+    for (let i = 0; i < 80; i++) {
+      stars.push(new Star());
+    }
+  }
+
+  window.addEventListener('resize', resize);
 
   // --- Particle class ---
   class Particle {
@@ -162,12 +161,6 @@
     }
   }
 
-  // --- Create particles ---
-  const particles = [];
-  for (let i = 0; i < CONFIG.particleCount; i++) {
-    particles.push(new Particle());
-  }
-
   // --- Background stars (ambient sparkle) ---
   class Star {
     constructor() {
@@ -188,10 +181,9 @@
     }
   }
 
+  // --- Create particles and stars ---
+  const particles = [];
   const stars = [];
-  for (let i = 0; i < 80; i++) {
-    stars.push(new Star());
-  }
 
   // --- Animation loop ---
   let time = 0;
@@ -214,5 +206,7 @@
     requestAnimationFrame(animate);
   }
 
+  // Initialize after everything is defined
+  resize();
   animate();
 })();
