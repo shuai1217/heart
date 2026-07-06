@@ -33,7 +33,7 @@
     // 3D rendering
     heartScale: 12,
     focalLength: 400,
-    rotationSpeed: 0.0003,
+    rotationSpeed: 0.00005,
   };
 
   // --- Drag interaction state ---
