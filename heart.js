@@ -288,7 +288,7 @@
       }
     }
 
-    draw(ctx, pulseScale, tiltX) {
+    draw(ctx, time, pulseScale, tiltX) {
       // Rotate particle position
       const rotated = rotateY(this.x, this.y, this.z, rotationAngle);
       const rx = rotated.x * pulseScale;
@@ -296,9 +296,9 @@
       const rz = rotated.z * pulseScale;
       const rotated2 = rotateX(rx, ry, rz, tiltX || 0);
 
-      const sx = rotated2.x * pulseScale;
-      const sy = rotated2.y * pulseScale;
-      const sz = rotated2.z * pulseScale;
+      const sx = rx;
+      const sy = ry;
+      const sz = rz;
 
       // Store rotated Z for depth-based alpha
       this.rotatedZ = sz;
@@ -406,7 +406,7 @@
       }
     }
 
-    draw(ctx, pulseScale, tiltX) {
+    draw(ctx, time, pulseScale, tiltX) {
       // Rotate particle position
       const rotated = rotateY(this.x, this.y, this.z, rotationAngle);
       const rx = rotated.x * pulseScale;
@@ -414,9 +414,9 @@
       const rz = rotated.z * pulseScale;
       const rotated2 = rotateX(rx, ry, rz, tiltX || 0);
 
-      const sx = rotated2.x * pulseScale;
-      const sy = rotated2.y * pulseScale;
-      const sz = rotated2.z * pulseScale;
+      const sx = rx;
+      const sy = ry;
+      const sz = rz;
 
       // Store rotated Z for depth-based alpha
       this.rotatedZ = sz;
@@ -500,16 +500,16 @@
       const ry = rotated.y * pulseScale;
       const rz = rotated.z * pulseScale;
       const rotated2 = rotateX(rx, ry, rz, tiltX);
-      const sx = rotated2.x * pulseScale;
-      const sy = rotated2.y * pulseScale;
-      const sz = rotated2.z * pulseScale;
+      const sx = rotated2.x;
+      const sy = rotated2.y;
+      const sz = rotated2.z;
       p.rotatedZ = sz;
     }
     particles.sort((a, b) => b.rotatedZ - a.rotatedZ);
 
     // Draw particles
     for (const p of particles) {
-      p.draw(ctx, pulseScale, tiltX);
+      p.draw(ctx, time, pulseScale, tiltX);
     }
 
     requestAnimationFrame(animate);
