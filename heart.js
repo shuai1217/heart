@@ -60,6 +60,8 @@
 
   // --- Resize handling ---
   let width, height, centerX, centerY, heartSize;
+  let particles = [];
+  let stars = [];
 
   function resize() {
     width = canvas.width = window.innerWidth;
@@ -180,10 +182,6 @@
       ctx.fill();
     }
   }
-
-  // --- Create particles and stars ---
-  const particles = [];
-  const stars = [];
 
   // --- Animation loop ---
   let time = 0;
