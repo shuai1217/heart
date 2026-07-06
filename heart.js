@@ -289,10 +289,6 @@
     }
   }
 
-  // --- Create particles and stars ---
-  const particles = [];
-  const stars = [];
-
   // --- Animation loop ---
   let time = 0;
 
