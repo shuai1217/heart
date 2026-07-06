@@ -36,6 +36,12 @@
     rotationSpeed: 0.0003,
   };
 
+  // --- Drag interaction state ---
+  let isDragging = false;
+  let dragStartX = 0;
+  let dragRotationX = 0;
+  let dragVelocity = 0;
+
   // --- Color utility ---
   function lerpColor(colors, t) {
     t = Math.max(0, Math.min(1, t));
@@ -169,6 +175,45 @@
     resizeTimeout = setTimeout(resize, 200);
   });
 
+  // --- Mouse/touch drag interaction ---
+  canvas.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    dragStartX = e.clientX;
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - dragStartX;
+    dragVelocity = dx * 0.005;
+    rotationAngle += dx * 0.005;
+    dragRotationX += dx * 0.003;
+    dragStartX = e.clientX;
+  });
+
+  window.addEventListener('mouseup', () => {
+    isDragging = false;
+  });
+
+  canvas.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    dragStartX = e.touches[0].clientX;
+    e.preventDefault();
+  }, { passive: false });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - dragStartX;
+    dragVelocity = dx * 0.005;
+    rotationAngle += dx * 0.005;
+    dragRotationX += dx * 0.003;
+    dragStartX = e.touches[0].clientX;
+    e.preventDefault();
+  }, { passive: false });
+
+  window.addEventListener('touchend', () => {
+    isDragging = false;
+  });
+
   // --- Sort particles by Z-depth for painter's algorithm ---
   function sortByDepth(a, b) {
     return (a.zDepth || 0) - (b.zDepth || 0);
@@ -243,16 +288,23 @@
       }
     }
 
-    draw(ctx) {
+    draw(ctx, pulseScale, tiltX) {
       // Rotate particle position
       const rotated = rotateY(this.x, this.y, this.z, rotationAngle);
-      const rotated2 = rotateX(rotated.x, rotated.y, rotated.z, 0.15);
+      const rx = rotated.x * pulseScale;
+      const ry = rotated.y * pulseScale;
+      const rz = rotated.z * pulseScale;
+      const rotated2 = rotateX(rx, ry, rz, tiltX || 0);
+
+      const sx = rotated2.x * pulseScale;
+      const sy = rotated2.y * pulseScale;
+      const sz = rotated2.z * pulseScale;
 
       // Store rotated Z for depth-based alpha
-      this.rotatedZ = rotated2.z;
+      this.rotatedZ = sz;
 
       // Project to 2D
-      const projected = project(rotated2.x, rotated2.y, rotated2.z);
+      const projected = project(sx, sy, sz);
 
       const screenX = centerX + projected.sx;
       const screenY = centerY + projected.sy;
@@ -354,16 +406,23 @@
       }
     }
 
-    draw(ctx) {
+    draw(ctx, pulseScale, tiltX) {
       // Rotate particle position
       const rotated = rotateY(this.x, this.y, this.z, rotationAngle);
-      const rotated2 = rotateX(rotated.x, rotated.y, rotated.z, 0.15);
+      const rx = rotated.x * pulseScale;
+      const ry = rotated.y * pulseScale;
+      const rz = rotated.z * pulseScale;
+      const rotated2 = rotateX(rx, ry, rz, tiltX || 0);
+
+      const sx = rotated2.x * pulseScale;
+      const sy = rotated2.y * pulseScale;
+      const sz = rotated2.z * pulseScale;
 
       // Store rotated Z for depth-based alpha
-      this.rotatedZ = rotated2.z;
+      this.rotatedZ = sz;
 
       // Project to 2D
-      const projected = project(rotated2.x, rotated2.y, rotated2.z);
+      const projected = project(sx, sy, sz);
 
       const screenX = centerX + projected.sx;
       const screenY = centerY + projected.sy;
@@ -408,8 +467,24 @@
 
   function animate() {
     time++;
+
+    // Inertia: keep rotating after drag release
+    if (!isDragging) {
+      rotationAngle += dragVelocity;
+      dragVelocity *= 0.95;
+      if (Math.abs(dragVelocity) < 0.0001) dragVelocity = 0;
+    }
+
+    // Auto-rotation
     rotationAngle += CONFIG.rotationSpeed * width;
-    const { scatter } = heartbeatState(time);
+
+    const { intensity, scatter } = heartbeatState(time);
+    // 3D pulse scale: heart expands slightly on beat
+    const pulseScale = 1 + intensity * 0.08;
+
+    // Apply X-axis tilt from drag
+    const tiltX = dragRotationX;
+
     ctx.clearRect(0, 0, width, height);
 
     // Draw stars
@@ -419,16 +494,22 @@
 
     // Sort particles by Z-depth for proper layering
     for (const p of particles) {
+      p.update(time, scatter);
       const rotated = rotateY(p.x, p.y, p.z, rotationAngle);
-      const rotated2 = rotateX(rotated.x, rotated.y, rotated.z, 0.15);
-      p.rotatedZ = rotated2.z;
+      const rx = rotated.x * pulseScale;
+      const ry = rotated.y * pulseScale;
+      const rz = rotated.z * pulseScale;
+      const rotated2 = rotateX(rx, ry, rz, tiltX);
+      const sx = rotated2.x * pulseScale;
+      const sy = rotated2.y * pulseScale;
+      const sz = rotated2.z * pulseScale;
+      p.rotatedZ = sz;
     }
     particles.sort((a, b) => b.rotatedZ - a.rotatedZ);
 
     // Draw particles
     for (const p of particles) {
-      p.update(time, scatter);
-      p.draw(ctx);
+      p.draw(ctx, pulseScale, tiltX);
     }
 
     requestAnimationFrame(animate);
