@@ -60,11 +60,67 @@
         letter-spacing: 0.1em;
       }
     }
+
+    .music-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(4px);
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .music-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.9);
+    }
+
+    .music-btn.playing {
+      animation: musicSpin 3s linear infinite;
+    }
+
+    @keyframes musicSpin {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
   <canvas id="heartCanvas"></canvas>
   <div class="heart-text">尹湘清</div>
+  <audio id="bgMusic" loop preload="auto">
+    <source src="marry.mp3" type="audio/mpeg">
+  </audio>
+  <button class="music-btn" id="musicBtn" title="播放/暂停音乐">♪</button>
+  <script>
+    const music = document.getElementById('bgMusic');
+    const btn = document.getElementById('musicBtn');
+    let playing = false;
+    btn.addEventListener('click', () => {
+      if (playing) {
+        music.pause();
+        btn.classList.remove('playing');
+        btn.textContent = '♪';
+      } else {
+        music.play();
+        btn.classList.add('playing');
+        btn.textContent = '♫';
+      }
+      playing = !playing;
+    });
+  </script>
   <script src="heart.js"></script>
 </body>
 </html>
