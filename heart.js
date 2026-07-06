@@ -2,6 +2,7 @@
  * Heart Particle Animation
  * Renders a heart shape made of twinkling particles using Canvas 2D.
  * Parametric heart equation: x = 16sin^3(t), y = 13cos(t) - 5cos(2t) - 2cos(3t) - cos(4t)
+ * Heartbeat: sinusoidal scale pulse mimicking a real heartbeat rhythm (lub-dub)
  */
 
 (function () {
@@ -12,12 +13,12 @@
 
   // --- Configuration ---
   const CONFIG = {
-    particleCount: 800,       // Number of particles forming the heart
-    heartScale: 12,           // Size multiplier for the heart shape
-    driftSpeed: 0.15,         // How fast particles drift (pixels/frame)
-    driftAmplitude: 2,        // How far particles drift from center
-    twinkleSpeed: 0.015,      // Speed of opacity oscillation
-    twinkleRange: [0.4, 1.0], // Min/max opacity during twinkle
+    particleCount: 1500,       // Number of particles forming the heart
+    heartScale: 12,            // Size multiplier for the heart shape
+    driftSpeed: 0.12,          // How fast particles drift (pixels/frame)
+    driftAmplitude: 1.5,       // How far particles drift from center
+    twinkleSpeed: 0.012,       // Speed of opacity oscillation
+    twinkleRange: [0.5, 1.0],  // Min/max opacity during twinkle
     colorStops: [
       { r: 50,  g: 100, b: 200 },   // Richer deep blue
       { r: 120, g: 60,  b: 210 },   // Vivid purple
@@ -25,7 +26,9 @@
       { r: 255, g: 140, b: 170 },   // Soft light pink
       { r: 90,  g: 80,  b: 190 },   // Deep indigo
     ],
-    glowSize: 5,              // Particle glow radius
+    glowSize: 5,               // Particle glow radius
+    heartbeatSpeed: 0.003,     // Speed of the heartbeat pulse
+    heartbeatIntensity: 0.06,   // Scale amplitude of heartbeat (6% pulse)
   };
 
   // --- Color utility ---
@@ -56,6 +59,17 @@
     const x = 16 * Math.pow(Math.sin(t), 3);
     const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
     return { x, y };
+  }
+
+  // --- Heartbeat scale function ---
+  // Mimics a real heartbeat: strong "lub" followed by a weaker "dub"
+  // Period ~1 second at heartbeatSpeed=0.003
+  function heartbeatScale(time) {
+    const t = (time * CONFIG.heartbeatSpeed) % (Math.PI * 2);
+    // Double-pulse: first peak at t≈0, second smaller peak at t≈0.4π
+    const beat1 = Math.exp(-3 * Math.pow(Math.sin(t * 0.5), 2));
+    const beat2 = Math.exp(-5 * Math.pow(Math.sin((t - Math.PI * 0.4) * 0.5), 2)) * 0.6;
+    return 1 + CONFIG.heartbeatIntensity * (beat1 + beat2);
   }
 
   // --- Resize handling ---
@@ -101,13 +115,13 @@
 
       // Random fill: some particles on the outline, some inside
       const fillFactor = Math.random();
-      if (fillFactor < 0.7) {
-        // 70% on the outline (within a band)
-        const band = (Math.random() - 0.5) * 4;
+      if (fillFactor < 0.6) {
+        // 60% on the outline (within a band)
+        const band = (Math.random() - 0.5) * 3;
         this.targetX = this.baseX + band;
         this.targetY = this.baseY + band;
       } else {
-        // 30% randomly distributed inside the heart
+        // 40% randomly distributed inside the heart
         const innerT = Math.random() * Math.PI * 2;
         const innerPos = heartPosition(innerT);
         const innerScale = Math.pow(Math.random(), 2); // Bias toward center
@@ -134,12 +148,16 @@
       this.size = 1 + Math.random() * 2.5;
     }
 
-    update(time) {
+    update(time, beat) {
       // Drift motion
       const driftX = Math.sin(time * CONFIG.driftSpeed + this.driftPhase) * CONFIG.driftAmplitude;
       const driftY = Math.cos(time * CONFIG.driftSpeed * 0.7 + this.driftPhase) * CONFIG.driftAmplitude;
       this.x = this.targetX + Math.cos(this.driftAngle) * driftX;
       this.y = this.targetY + Math.sin(this.driftAngle) * driftY;
+
+      // Apply heartbeat scale to position (relative to center)
+      this.x *= beat;
+      this.y *= beat;
 
       // Twinkle
       const twinkle = Math.sin(time * this.twinkleSpeed + this.twinklePhase);
@@ -183,11 +201,16 @@
     }
   }
 
+  // --- Create particles and stars ---
+  const particles = [];
+  const stars = [];
+
   // --- Animation loop ---
   let time = 0;
 
   function animate() {
     time++;
+    const beat = heartbeatScale(time);
     ctx.clearRect(0, 0, width, height);
 
     // Draw ambient stars
@@ -197,7 +220,7 @@
 
     // Draw particles
     for (const p of particles) {
-      p.update(time);
+      p.update(time, beat);
       p.draw(ctx);
     }
 
