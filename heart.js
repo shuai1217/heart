@@ -30,9 +30,9 @@
     rotationSpeed: 0.00001,
 
     // Phase timings (in frames at 60fps)
-    convergenceDuration: 360,    // Phase 1: ~6s
-    phase2Duration: 480,         // Phase 2: ~8s
-    phase3Duration: 600,         // Phase 3: ~10s
+    convergenceDuration: 300,     // Phase 1: ~5s
+    phase2Duration: 600,          // Phase 2: ~10s
+    phase3Duration: 1800,         // Phase 3: ~30s — long ending scene
 
     // Original color palette (Phase 1)
     colorStops: [
@@ -160,6 +160,8 @@
     for (let i = 0; i < CONFIG.innerParticleCount; i++) particles.push(new InnerParticle());
     stars.length = 0;
     for (let i = 0; i < 80; i++) stars.push(new Star());
+    sparkles = [];
+    for (let i = 0; i < 60; i++) sparkles.push(new Sparkle());
   }
 
   let resizeTimeout;
@@ -481,6 +483,33 @@
     }
   }
 
+  // --- Sparkle particles for couple scene ---
+  class Sparkle {
+    constructor() { this.reset(); }
+    reset() {
+      this.x = (Math.random() - 0.5) * heartSize * 1.5;
+      this.y = (Math.random() - 0.5) * heartSize * 1.5;
+      this.size = 1 + Math.random() * 3;
+      this.phase = Math.random() * Math.PI * 2;
+      this.speed = 0.02 + Math.random() * 0.03;
+      this.alpha = 0.3 + Math.random() * 0.7;
+      const colors = [
+        { r: 255, g: 200, b: 220 },
+        { r: 255, g: 230, b: 180 },
+        { r: 200, g: 180, b: 255 },
+        { r: 255, g: 150, b: 180 },
+      ];
+      this.color = colors[Math.floor(Math.random() * colors.length)];
+    }
+    draw(ctx, time) {
+      const a = this.alpha * (0.3 + 0.7 * Math.abs(Math.sin(time * this.speed + this.phase)));
+      ctx.beginPath();
+      ctx.arc(centerX + this.x, centerY + this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${a})`;
+      ctx.fill();
+    }
+  }
+
   // --- Cute 2D cartoon couple drawing ---
   function drawCoupleSilhouette(ctx, time, progress) {
     if (progress <= 0 || progress > 1) return;
@@ -651,6 +680,7 @@
   // --- Animation loop ---
   let time = 0;
   let petals = [];
+  let sparkles = [];
   let petalSpawned = false;
 
   function animate() {
@@ -736,9 +766,12 @@
       for (const p of petals) p.draw(ctx);
     }
 
-    // Draw couple silhouette in late phase 3
-    if (currentPhase === 2 && explosionProgress > 0.3) {
-      drawCoupleSilhouette(ctx, time, (explosionProgress - 0.7) / 0.3);
+    // Draw couple silhouette in phase 3
+    if (currentPhase === 2 && explosionProgress > 0) {
+      const coupleProgress = Math.min(1, explosionProgress * 2);
+      drawCoupleSilhouette(ctx, time, coupleProgress);
+      // Draw sparkles around couple
+      for (const sp of sparkles) sp.draw(ctx, time);
     }
 
     // Notify HTML for text effects
