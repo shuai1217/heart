@@ -226,10 +226,11 @@
 
     update(time, scatter, convProgress, explodeProgress) {
       if (explodeProgress > 0) {
-        // Explosion mode: fly outward
-        this.x = this.targetX + this.explodeVx * explodeProgress * 80;
-        this.y = this.targetY + this.explodeVy * explodeProgress * 80 - explodeProgress * explodeProgress * 200;
-        this.z = this.targetZ + this.explodeVz * explodeProgress * 40;
+        // Instant explosion: fly outward fast then slow down
+        const t = explodeProgress;
+        this.x = this.targetX + this.explodeVx * t * 300;
+        this.y = this.targetY + this.explodeVy * t * 300 - t * t * 400;
+        this.z = this.targetZ + this.explodeVz * t * 100;
         return;
       }
 
@@ -329,9 +330,10 @@
 
     update(time, scatter, convProgress, explodeProgress) {
       if (explodeProgress > 0) {
-        this.x = this.targetX + this.explodeVx * explodeProgress * 60;
-        this.y = this.targetY + this.explodeVy * explodeProgress * 60 - explodeProgress * explodeProgress * 150;
-        this.z = this.targetZ + this.explodeVz * explodeProgress * 30;
+        const t = explodeProgress;
+        this.x = this.targetX + this.explodeVx * t * 250;
+        this.y = this.targetY + this.explodeVy * t * 250 - t * t * 350;
+        this.z = this.targetZ + this.explodeVz * t * 80;
         return;
       }
       const easedConv = easeOutCubic(convProgress);
@@ -383,7 +385,7 @@
   // --- Rose petal class for Phase 3 ---
   class RosePetal {
     constructor() {
-      // Start from heart position
+      // Default: start from heart position (fallback)
       const t = Math.random() * Math.PI * 2, u = Math.random() * Math.PI;
       const pos = heartPosition3D(t, u);
       const sc = heartSize / CONFIG.heartScale;
@@ -559,11 +561,16 @@
         petals = [];
       }
     } else if (currentPhase === 2) {
-      explosionProgress = Math.min(1, phaseTime / (CONFIG.phase3Duration * 0.3));
-      if (!petalSpawned && explosionProgress >= 0.5) {
-        // Spawn rose petals from heart position
-        for (let i = 0; i < 200; i++) {
-          petals.push(new RosePetal());
+      explosionProgress = Math.min(1, phaseTime / 60); // Instant explosion over 1 second
+      if (!petalSpawned && phaseTime >= 5) {
+        // Spawn rose petals from actual particle positions
+        for (const p of particles) {
+          const petal = new RosePetal();
+          // Use actual particle position, not heart center
+          petal.x = p.x;
+          petal.y = p.y;
+          petal.z = p.z;
+          petals.push(petal);
         }
         petalSpawned = true;
       }
