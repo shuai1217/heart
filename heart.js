@@ -595,7 +595,7 @@
       dragVelocity *= 0.95;
       if (Math.abs(dragVelocity) < 0.0001) dragVelocity = 0;
     }
-    rotationAngle += CONFIG.rotationSpeed * width;
+    rotationAngle += (currentPhase === 1 ? CONFIG.rotationSpeed : 0) * width;
 
     const { intensity, scatter } = heartbeatState(time);
     const pulseScale = 1 + intensity * 0.08;
