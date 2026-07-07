@@ -31,7 +31,25 @@
     convergenceDuration: 360,    // Phase 1: ~6s
     phase2Duration: 1200,        // Phase 2: ~20s
     phase3Duration: 480,         // Phase 3: ~8s
+
+    // Original color palette (Phase 1)
+    colorStops: [
+      { r: 50,  g: 100, b: 200 },
+      { r: 120, g: 60,  b: 210 },
+      { r: 210, g: 70,  b: 150 },
+      { r: 255, g: 140, b: 170 },
+      { r: 90,  g: 80,  b: 190 },
+    ],
   };
+
+  // --- Rose color palette for Phase 2 ---
+  const ROSE_COLORS = [
+    { r: 220, g: 60,  b: 120 },
+    { r: 240, g: 80,  b: 130 },
+    { r: 255, g: 100, b: 150 },
+    { r: 255, g: 140, b: 170 },
+    { r: 200, g: 50,  b: 100 },
+  ];
 
   // --- Phase tracking ---
   let currentPhase = 0; // 0=converging, 1=rotating, 2=exploding
@@ -75,15 +93,6 @@
   }
 
   function colorStr(c, alpha) { return `rgba(${c.r}, ${c.g}, ${c.b}, ${alpha})`; }
-
-  // --- Rose color palette for Phase 2 ---
-  const ROSE_COLORS = [
-    { r: 220, g: 60,  b: 120 },   // Deep rose
-    { r: 240, g: 80,  b: 130 },   // Rose
-    { r: 255, g: 100, b: 150 },   // Pink
-    { r: 255, g: 140, b: 170 },   // Light pink
-    { r: 200, g: 50,  b: 100 },   // Dark rose
-  ];
 
   // --- 3D heart parametric equation ---
   function heartPosition3D(t, u) {
