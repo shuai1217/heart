@@ -44,13 +44,16 @@
       z-index: 10;
       pointer-events: none;
       white-space: nowrap;
-      opacity: 0;
-      animation: textFadeIn 3s ease-out 1.5s forwards;
     }
 
-    @keyframes textFadeIn {
-      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    .heart-text .char {
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      display: inline-block;
+    }
+
+    .heart-text .char.visible {
+      opacity: 1;
     }
 
     @media (max-width: 600px) {
@@ -97,7 +100,9 @@
 </head>
 <body>
   <canvas id="heartCanvas"></canvas>
-  <div class="heart-text">尹湘清</div>
+  <div class="heart-text">
+    <span class="char">尹</span><span class="char">湘</span><span class="char">清</span>
+  </div>
   <audio id="bgMusic" loop preload="auto">
     <source src="marry.mp3" type="audio/mpeg">
   </audio>
@@ -118,6 +123,19 @@
       }
       playing = !playing;
     });
+
+    // Typing text effect: reveal characters based on convergence progress
+    const chars = document.querySelectorAll('.heart-text .char');
+    const revealThresholds = [0.3, 0.6, 0.9];
+    window.onConvergenceProgress = function(progress) {
+      chars.forEach((ch, i) => {
+        if (progress >= revealThresholds[i]) {
+          ch.classList.add('visible');
+        } else {
+          ch.classList.remove('visible');
+        }
+      });
+    };
   </script>
   <script src="heart.js"></script>
 </body>

@@ -34,13 +34,26 @@
     heartScale: 12,
     focalLength: 400,
     rotationSpeed: 0.00005,
+    // Phase 1: Starlight Convergence
+    convergenceDuration: 360, // frames (~6 seconds at 60fps)
+    convergenceStartTime: 0, // when convergence started (in animation frames)
   };
+
+  // --- Phase tracking ---
+  let currentPhase = 0; // 0=converging, 1=rotating, 2=exploding
+  let convergenceProgress = 0;
+  let convergenceElapsed = 0;
 
   // --- Drag interaction state ---
   let isDragging = false;
   let dragStartX = 0;
   let dragRotationX = 0;
   let dragVelocity = 0;
+
+  // --- Easing functions ---
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
 
   // --- Color utility ---
   function lerpColor(colors, t) {
@@ -260,27 +273,44 @@
         this.scatterVy = 0;
         this.scatterVz = 1;
       }
+
+      // Scattered (stardust) initial positions
+      this.scatteredX = (Math.random() - 0.5) * width * 2;
+      this.scatteredY = (Math.random() - 0.5) * height * 2;
+      this.scatteredZ = (Math.random() - 0.5) * 200;
     }
 
-    update(time, scatter) {
-      // Drift in 3D
-      const driftX = Math.sin(time * CONFIG.driftSpeed + this.driftPhase) * CONFIG.driftAmplitude;
-      const driftY = Math.cos(time * CONFIG.driftSpeed * 0.7 + this.driftPhase) * CONFIG.driftAmplitude;
-      const driftZ = Math.sin(time * CONFIG.driftSpeed * 0.5 + this.driftPhase + Math.PI) * CONFIG.driftAmplitude * 0.5;
+    update(time, scatter, convProgress) {
+      // Starlight convergence: lerp from scattered to target
+      const easedConv = easeOutCubic(convProgress);
+      this.x = this.scatteredX + (this.targetX - this.scatteredX) * easedConv;
+      this.y = this.scatteredY + (this.targetY - this.scatteredY) * easedConv;
+      this.z = this.scatteredZ + (this.targetZ - this.scatteredZ) * easedConv;
 
-      this.x = this.targetX + Math.cos(this.driftAngle) * driftX;
-      this.y = this.targetY + Math.sin(this.driftAngle) * driftY;
-      this.z = this.targetZ + Math.cos(this.driftAngle * 0.7) * driftZ;
+      // Drift in 3D (only applies when converged)
+      if (convProgress > 0.5) {
+        const driftFactor = (convProgress - 0.5) * 2; // 0→1 as conv goes 0.5→1
+        const driftX = Math.sin(time * CONFIG.driftSpeed + this.driftPhase) * CONFIG.driftAmplitude;
+        const driftY = Math.cos(time * CONFIG.driftSpeed * 0.7 + this.driftPhase) * CONFIG.driftAmplitude;
+        const driftZ = Math.sin(time * CONFIG.driftSpeed * 0.5 + this.driftPhase + Math.PI) * CONFIG.driftAmplitude * 0.5;
 
-      // Scatter outward in 3D
-      if (scatter > 0) {
+        this.x += Math.cos(this.driftAngle) * driftX * driftFactor;
+        this.y += Math.sin(this.driftAngle) * driftY * driftFactor;
+        this.z += Math.cos(this.driftAngle * 0.7) * driftZ * driftFactor;
+      }
+
+      // Scatter outward in 3D (only applies when converged)
+      if (scatter > 0 && convProgress >= 1) {
         this.x += this.scatterVx * CONFIG.scatterRadius * scatter;
         this.y += this.scatterVy * CONFIG.scatterRadius * scatter;
         this.z += this.scatterVz * CONFIG.scatterRadius * scatter * 0.5;
       }
     }
 
-    draw(ctx, time, pulseScale, tiltX) {
+    draw(ctx, time, pulseScale, tiltX, convProgress) {
+      // Fade in particles as convergence progresses
+      const fadeIn = Math.min(1, convProgress * 2); // fully visible by 0.5 convergence
+
       // Rotate particle position
       const rotated = rotateY(this.x, this.y, this.z, rotationAngle);
       const rx = rotated.x * pulseScale;
@@ -309,7 +339,7 @@
 
       // Adjust alpha based on depth for atmosphere
       const depthAlpha = 0.4 + 0.6 * ((this.rotatedZ + 100) / 200);
-      const finalAlpha = Math.max(0.1, Math.min(1, alpha * depthAlpha));
+      const finalAlpha = Math.max(0.1, Math.min(1, alpha * depthAlpha)) * fadeIn;
 
       ctx.beginPath();
       ctx.arc(screenX, screenY, scaledSize, 0, Math.PI * 2);
@@ -378,25 +408,43 @@
         this.scatterVy = 0;
         this.scatterVz = 1;
       }
+
+      // Scattered (stardust) initial positions
+      this.scatteredX = (Math.random() - 0.5) * width * 2;
+      this.scatteredY = (Math.random() - 0.5) * height * 2;
+      this.scatteredZ = (Math.random() - 0.5) * 200;
     }
 
-    update(time, scatter) {
-      const driftX = Math.sin(time * CONFIG.driftSpeed + this.driftPhase) * CONFIG.driftAmplitude;
-      const driftY = Math.cos(time * CONFIG.driftSpeed * 0.7 + this.driftPhase) * CONFIG.driftAmplitude;
-      const driftZ = Math.sin(time * CONFIG.driftSpeed * 0.5 + this.driftPhase + Math.PI) * CONFIG.driftAmplitude * 0.5;
+    update(time, scatter, convProgress) {
+      // Starlight convergence: lerp from scattered to target
+      const easedConv = easeOutCubic(convProgress);
+      this.x = this.scatteredX + (this.targetX - this.scatteredX) * easedConv;
+      this.y = this.scatteredY + (this.targetY - this.scatteredY) * easedConv;
+      this.z = this.scatteredZ + (this.targetZ - this.scatteredZ) * easedConv;
 
-      this.x = this.targetX + Math.cos(this.driftAngle) * driftX;
-      this.y = this.targetY + Math.sin(this.driftAngle) * driftY;
-      this.z = this.targetZ + Math.cos(this.driftAngle * 0.7) * driftZ;
+      // Drift in 3D (only applies when converged)
+      if (convProgress > 0.5) {
+        const driftFactor = (convProgress - 0.5) * 2;
+        const driftX = Math.sin(time * CONFIG.driftSpeed + this.driftPhase) * CONFIG.driftAmplitude;
+        const driftY = Math.cos(time * CONFIG.driftSpeed * 0.7 + this.driftPhase) * CONFIG.driftAmplitude;
+        const driftZ = Math.sin(time * CONFIG.driftSpeed * 0.5 + this.driftPhase + Math.PI) * CONFIG.driftAmplitude * 0.5;
 
-      if (scatter > 0) {
+        this.x += Math.cos(this.driftAngle) * driftX * driftFactor;
+        this.y += Math.sin(this.driftAngle) * driftY * driftFactor;
+        this.z += Math.cos(this.driftAngle * 0.7) * driftZ * driftFactor;
+      }
+
+      if (scatter > 0 && convProgress >= 1) {
         this.x += this.scatterVx * CONFIG.scatterRadius * scatter * 0.8;
         this.y += this.scatterVy * CONFIG.scatterRadius * scatter * 0.8;
         this.z += this.scatterVz * CONFIG.scatterRadius * scatter * 0.8 * 0.5;
       }
     }
 
-    draw(ctx, time, pulseScale, tiltX) {
+    draw(ctx, time, pulseScale, tiltX, convProgress) {
+      // Fade in particles as convergence progresses
+      const fadeIn = Math.min(1, convProgress * 2);
+
       // Rotate particle position
       const rotated = rotateY(this.x, this.y, this.z, rotationAngle);
       const rx = rotated.x * pulseScale;
@@ -423,7 +471,7 @@
         ((twinkle + 1) / 2) * (CONFIG.twinkleRange[1] - CONFIG.twinkleRange[0]);
 
       const depthAlpha = 0.4 + 0.6 * ((this.rotatedZ + 100) / 200);
-      const finalAlpha = Math.max(0.1, Math.min(1, alpha * depthAlpha));
+      const finalAlpha = Math.max(0.1, Math.min(1, alpha * depthAlpha)) * fadeIn;
 
       ctx.beginPath();
       ctx.arc(screenX, screenY, scaledSize, 0, Math.PI * 2);
@@ -441,12 +489,20 @@
       this.phase = Math.random() * Math.PI * 2;
       this.speed = 0.005 + Math.random() * 0.01;
       this.alpha = 0.2 + Math.random() * 0.4;
+      // Scattered position far from center
+      this.scatteredX = (Math.random() - 0.5) * width * 3;
+      this.scatteredY = (Math.random() - 0.5) * height * 3;
     }
 
-    draw(ctx, time) {
-      const a = this.alpha * (0.5 + 0.5 * Math.sin(time * this.speed + this.phase));
+    draw(ctx, time, convProgress) {
+      // Stars fade out as heart converges
+      const fadeIn = 1 - Math.min(1, convProgress * 1.5);
+      if (fadeIn <= 0) return;
+      const a = this.alpha * fadeIn * (0.5 + 0.5 * Math.sin(time * this.speed + this.phase));
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.arc(centerX + this.scatteredX * (1 - easeOutCubic(convProgress)),
+              centerY + this.scatteredY * (1 - easeOutCubic(convProgress)),
+              this.size, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(200, 200, 255, ${a})`;
       ctx.fill();
     }
@@ -457,6 +513,15 @@
 
   function animate() {
     time++;
+
+    // Phase 1: Track convergence progress
+    if (currentPhase === 0) {
+      convergenceElapsed++;
+      convergenceProgress = Math.min(1, convergenceElapsed / CONFIG.convergenceDuration);
+      if (convergenceProgress >= 1) {
+        currentPhase = 1; // Transition to Phase 2 (rotating)
+      }
+    }
 
     // Inertia: keep rotating after drag release
     if (!isDragging) {
@@ -479,12 +544,12 @@
 
     // Draw stars
     for (const star of stars) {
-      star.draw(ctx, time);
+      star.draw(ctx, time, convergenceProgress);
     }
 
     // Sort particles by Z-depth for proper layering
     for (const p of particles) {
-      p.update(time, scatter);
+      p.update(time, scatter, convergenceProgress);
       const rotated = rotateY(p.x, p.y, p.z, rotationAngle);
       const rx = rotated.x * pulseScale;
       const ry = rotated.y * pulseScale;
@@ -499,7 +564,12 @@
 
     // Draw particles
     for (const p of particles) {
-      p.draw(ctx, time, pulseScale, tiltX);
+      p.draw(ctx, time, pulseScale, tiltX, convergenceProgress);
+    }
+
+    // Notify HTML of convergence progress for typing text
+    if (window.onConvergenceProgress) {
+      window.onConvergenceProgress(convergenceProgress);
     }
 
     requestAnimationFrame(animate);
