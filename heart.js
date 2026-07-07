@@ -13,8 +13,8 @@
 
   // --- Configuration ---
   const CONFIG = {
-    surfaceParticleCount: 1500,
-    innerParticleCount: 600,
+    surfaceParticleCount: 2000,
+    innerParticleCount: 1000,
     driftSpeed: 0.04,
     driftAmplitude: 1,
     twinkleSpeed: 0.012,
@@ -34,21 +34,21 @@
 
     // Original color palette (Phase 1)
     colorStops: [
-      { r: 50,  g: 100, b: 200 },
-      { r: 120, g: 60,  b: 210 },
-      { r: 210, g: 70,  b: 150 },
-      { r: 255, g: 140, b: 170 },
-      { r: 90,  g: 80,  b: 190 },
+      { r: 80,  g: 50,  b: 180 },
+      { r: 160, g: 40,  b: 160 },
+      { r: 220, g: 60,  b: 130 },
+      { r: 255, g: 100, b: 140 },
+      { r: 180, g: 50,  b: 170 },
     ],
   };
 
   // --- Rose color palette for Phase 2 ---
   const ROSE_COLORS = [
-    { r: 220, g: 60,  b: 120 },
-    { r: 240, g: 80,  b: 130 },
-    { r: 255, g: 100, b: 150 },
-    { r: 255, g: 140, b: 170 },
-    { r: 200, g: 50,  b: 100 },
+    { r: 200, g: 40,  b: 100 },
+    { r: 230, g: 60,  b: 120 },
+    { r: 255, g: 90,  b: 140 },
+    { r: 255, g: 120, b: 160 },
+    { r: 180, g: 30,  b: 90  },
   ];
 
   // --- Phase tracking ---
@@ -101,7 +101,7 @@
     return {
       x: 16 * Math.pow(sinT, 3) * sinU,
       y: -(13 * cosT - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t)) * Math.pow(sinU, 2),
-      z: (12 * cosU + 3 * Math.cos(2*u) + 2 * Math.cos(3*u)) * 0.5,
+      z: (12 * cosU + 3 * Math.cos(2*u) + 2 * Math.cos(3*u)),
     };
   }
 
@@ -208,7 +208,7 @@
       this.origColor = lerpColor(CONFIG.colorStops, colorT);
       this.roseColor = lerpColor(ROSE_COLORS, Math.random());
       this.color = { ...this.origColor };
-      this.size = 1 + Math.random() * 2.5;
+      this.size = 1.2 + Math.random() * 2.8;
 
       const dist = Math.sqrt(this.targetX*this.targetX + this.targetY*this.targetY + this.targetZ*this.targetZ);
       if (dist > 0) { this.scatterVx = this.targetX/dist; this.scatterVy = this.targetY/dist; this.scatterVz = this.targetZ/dist; }
