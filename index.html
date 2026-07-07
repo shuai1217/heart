@@ -140,11 +140,18 @@
         btn.classList.remove('playing');
         btn.textContent = '♪';
       } else {
-        music.play();
+        music.play().catch(e => {
+          console.warn('Audio play failed:', e);
+        });
         btn.classList.add('playing');
         btn.textContent = '♫';
       }
       playing = !playing;
+    });
+
+    // Hide music button if audio file is missing
+    music.addEventListener('error', () => {
+      btn.style.display = 'none';
     });
 
     // Phase 1: Typing text effect

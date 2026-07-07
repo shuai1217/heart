@@ -21,8 +21,10 @@
     twinkleRange: [0.5, 1.0],
     glowSize: 5,
     heartbeatSpeed: 0.0008,
-    scatterRadius: 35,
+    scatterRadius: 0,
     scatterRecover: 30,
+    // Disable heartbeat scatter — keep only pulse scale
+    heartbeatScatter: false,
     heartScale: 12,
     focalLength: 400,
     rotationSpeed: 0.00001,
@@ -246,7 +248,8 @@
         this.z += Math.cos(this.driftAngle * 0.7) * Math.sin(time * CONFIG.driftSpeed * 0.5 + this.driftPhase + Math.PI) * CONFIG.driftAmplitude * 0.5 * df;
       }
 
-      if (scatter > 0 && convProgress >= 1) {
+      // Heartbeat scatter disabled — only pulse scale remains
+      if (false && scatter > 0 && convProgress >= 1) {
         this.x += this.scatterVx * CONFIG.scatterRadius * scatter;
         this.y += this.scatterVy * CONFIG.scatterRadius * scatter;
         this.z += this.scatterVz * CONFIG.scatterRadius * scatter * 0.5;
@@ -347,7 +350,8 @@
         this.y += Math.sin(this.driftAngle) * Math.cos(time * CONFIG.driftSpeed * 0.7 + this.driftPhase) * CONFIG.driftAmplitude * df;
         this.z += Math.cos(this.driftAngle * 0.7) * Math.sin(time * CONFIG.driftSpeed * 0.5 + this.driftPhase + Math.PI) * CONFIG.driftAmplitude * 0.5 * df;
       }
-      if (scatter > 0 && convProgress >= 1) {
+      // Heartbeat scatter disabled — only pulse scale remains
+      if (false && scatter > 0 && convProgress >= 1) {
         this.x += this.scatterVx * CONFIG.scatterRadius * scatter * 0.8;
         this.y += this.scatterVy * CONFIG.scatterRadius * scatter * 0.8;
         this.z += this.scatterVz * CONFIG.scatterRadius * scatter * 0.8 * 0.5;
