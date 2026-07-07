@@ -117,7 +117,7 @@
 
   // --- Perspective projection ---
   function project(x, y, z) {
-    const scale = CONFIG.focalLength / (CONFIG.focalLength + z);
+    const scale = Math.max(0.1, CONFIG.focalLength / (CONFIG.focalLength + z));
     return { sx: x*scale, sy: y*scale, scale: scale };
   }
 

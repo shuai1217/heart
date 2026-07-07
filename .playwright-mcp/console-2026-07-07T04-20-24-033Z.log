@@ -1,0 +1,4 @@
+[     185ms] IndexSizeError: Failed to execute 'arc' on 'CanvasRenderingContext2D': The radius provided (-345.704) is negative.
+    at HeartParticle.draw (http://localhost:8080/heart.js:279:11)
+    at animate (http://localhost:8080/heart.js:616:9)
+[     313ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://localhost:8080/favicon.ico:0

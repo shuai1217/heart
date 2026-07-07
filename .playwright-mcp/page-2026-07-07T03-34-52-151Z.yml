@@ -1,0 +1,6 @@
+- generic [active] [ref=e1]:
+  - generic:
+    - generic: 尹
+    - generic: 湘
+    - generic: 清
+  - button "♪" [ref=e3] [cursor=pointer]

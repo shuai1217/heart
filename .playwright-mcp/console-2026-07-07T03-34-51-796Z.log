@@ -1,0 +1,8 @@
+[     119ms] TypeError: Cannot read properties of undefined (reading 'length')
+    at lerpColor (http://localhost:8080/heart.js:57:29)
+    at HeartParticle.reset (http://localhost:8080/heart.js:199:24)
+    at new HeartParticle (http://localhost:8080/heart.js:182:26)
+    at resize (http://localhost:8080/heart.js:148:74)
+    at http://localhost:8080/heart.js:627:3
+    at http://localhost:8080/heart.js:629:3
+[     322ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://localhost:8080/favicon.ico:0
