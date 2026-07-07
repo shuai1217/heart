@@ -1,3 +1,6 @@
 [     128ms] IndexSizeError: Failed to execute 'arc' on 'CanvasRenderingContext2D': The radius provided (-399.081) is negative.
     at HeartParticle.draw (http://localhost:8080/heart.js:345:11)
     at animate (http://localhost:8080/heart.js:567:9)
+[ 2995455ms] IndexSizeError: Failed to execute 'arc' on 'CanvasRenderingContext2D': The radius provided (-573.323) is negative.
+    at HeartParticle.draw (http://localhost:8080/heart.js:345:11)
+    at animate (http://localhost:8080/heart.js:567:9)
