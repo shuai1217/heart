@@ -32,7 +32,7 @@
     // Phase timings (in frames at 60fps)
     convergenceDuration: 360,    // Phase 1: ~6s
     phase2Duration: 480,         // Phase 2: ~8s
-    phase3Duration: 360,         // Phase 3: ~6s
+    phase3Duration: 600,         // Phase 3: ~10s
 
     // Original color palette (Phase 1)
     colorStops: [
@@ -737,7 +737,7 @@
     }
 
     // Draw couple silhouette in late phase 3
-    if (currentPhase === 2 && explosionProgress > 0.7) {
+    if (currentPhase === 2 && explosionProgress > 0.3) {
       drawCoupleSilhouette(ctx, time, (explosionProgress - 0.7) / 0.3);
     }
 
