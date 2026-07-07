@@ -31,8 +31,8 @@
 
     // Phase timings (in frames at 60fps)
     convergenceDuration: 360,    // Phase 1: ~6s
-    phase2Duration: 1200,        // Phase 2: ~20s
-    phase3Duration: 480,         // Phase 3: ~8s
+    phase2Duration: 480,         // Phase 2: ~8s
+    phase3Duration: 360,         // Phase 3: ~6s
 
     // Original color palette (Phase 1)
     colorStops: [
@@ -481,58 +481,169 @@
     }
   }
 
-  // --- Couple silhouette drawing ---
+  // --- Cute 2D cartoon couple drawing ---
   function drawCoupleSilhouette(ctx, time, progress) {
     if (progress <= 0 || progress > 1) return;
-    const alpha = Math.min(1, progress * 2) * 0.8;
-    const sway = Math.sin(time * 0.02) * 2; // gentle sway
+    const alpha = Math.min(1, progress * 2);
+    const sway = Math.sin(time * 0.015) * 1.5;
     const cx = centerX + sway;
-    const cy = centerY + 30;
-    const s = heartSize * 0.25; // scale
+    const cy = centerY + 20;
+    const s = heartSize * 0.22;
 
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = '#c060a0';
 
-    // Left figure (boy)
+    // === BOY (left) ===
+    // Body (round)
     ctx.beginPath();
-    // Head
-    ctx.arc(cx - s*0.3, cy - s*1.2, s*0.25, 0, Math.PI*2);
-    // Body
-    ctx.moveTo(cx - s*0.3, cy - s*0.9);
-    ctx.lineTo(cx - s*0.35, cy + s*0.3);
-    ctx.lineTo(cx - s*0.5, cy + s*0.8);
-    ctx.lineTo(cx - s*0.2, cy + s*0.8);
-    ctx.lineTo(cx - s*0.15, cy + s*0.3);
-    ctx.lineTo(cx - s*0.1, cy - s*0.9);
+    ctx.ellipse(cx - s*0.35, cy + s*0.1, s*0.3, s*0.5, 0, 0, Math.PI*2);
+    ctx.fillStyle = '#6a8caf';
     ctx.fill();
 
-    // Right figure (girl)
-    ctx.beginPath();
     // Head
-    ctx.arc(cx + s*0.3, cy - s*1.2, s*0.23, 0, Math.PI*2);
-    // Hair bun
-    ctx.arc(cx + s*0.35, cy - s*1.5, s*0.1, 0, Math.PI*2);
-    // Body (dress shape)
-    ctx.moveTo(cx + s*0.3, cy - s*0.9);
-    ctx.lineTo(cx + s*0.25, cy + s*0.1);
-    ctx.quadraticCurveTo(cx + s*0.5, cy + s*0.8, cx + s*0.6, cy + s*0.9);
-    ctx.lineTo(cx + s*0.0, cy + s*0.9);
-    ctx.quadraticCurveTo(cx + s*0.1, cy + s*0.3, cx + s*0.15, cy - s*0.9);
+    ctx.beginPath();
+    ctx.arc(cx - s*0.35, cy - s*0.7, s*0.35, 0, Math.PI*2);
+    ctx.fillStyle = '#ffe0bd';
     ctx.fill();
 
-    // Arms reaching toward each other (hug)
-    ctx.lineWidth = s * 0.08;
+    // Hair
+    ctx.beginPath();
+    ctx.arc(cx - s*0.35, cy - s*0.85, s*0.36, Math.PI, Math.PI*2);
+    ctx.fillStyle = '#4a3728';
+    ctx.fill();
+
+    // Eyes (big, cute)
+    ctx.beginPath();
+    ctx.arc(cx - s*0.45, cy - s*0.7, s*0.06, 0, Math.PI*2);
+    ctx.fillStyle = '#333';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx - s*0.25, cy - s*0.7, s*0.06, 0, Math.PI*2);
+    ctx.fill();
+
+    // Eye highlights
+    ctx.beginPath();
+    ctx.arc(cx - s*0.43, cy - s*0.72, s*0.025, 0, Math.PI*2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx - s*0.27, cy - s*0.72, s*0.025, 0, Math.PI*2);
+    ctx.fill();
+
+    // Blush
+    ctx.beginPath();
+    ctx.ellipse(cx - s*0.5, cy - s*0.55, s*0.08, s*0.05, 0, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255, 150, 150, 0.5)';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx - s*0.2, cy - s*0.55, s*0.08, s*0.05, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Mouth (smile)
+    ctx.beginPath();
+    ctx.arc(cx - s*0.35, cy - s*0.55, s*0.08, 0.1, Math.PI - 0.1);
     ctx.strokeStyle = '#c060a0';
+    ctx.lineWidth = s * 0.03;
+    ctx.stroke();
+
+    // === GIRL (right) ===
+    // Body (dress)
+    ctx.beginPath();
+    ctx.moveTo(cx + s*0.35, cy - s*0.3);
+    ctx.lineTo(cx + s*0.25, cy + s*0.1);
+    ctx.quadraticCurveTo(cx + s*0.55, cy + s*0.6, cx + s*0.6, cy + s*0.7);
+    ctx.lineTo(cx + s*0.1, cy + s*0.7);
+    ctx.quadraticCurveTo(cx + s*0.15, cy + s*0.1, cx + s*0.25, cy - s*0.3);
+    ctx.fillStyle = '#e88ab5';
+    ctx.fill();
+
+    // Head
+    ctx.beginPath();
+    ctx.arc(cx + s*0.35, cy - s*0.65, s*0.33, 0, Math.PI*2);
+    ctx.fillStyle = '#ffe0bd';
+    ctx.fill();
+
+    // Long hair
+    ctx.beginPath();
+    ctx.arc(cx + s*0.35, cy - s*0.7, s*0.36, Math.PI*0.8, Math.PI*2.2);
+    ctx.fillStyle = '#3a2518';
+    ctx.fill();
+    // Hair sides
+    ctx.beginPath();
+    ctx.ellipse(cx + s*0.05, cy - s*0.3, s*0.08, s*0.4, 0.2, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + s*0.65, cy - s*0.3, s*0.08, s*0.4, -0.2, 0, Math.PI*2);
+    ctx.fill();
+
+    // Bow on head
+    ctx.beginPath();
+    ctx.ellipse(cx + s*0.5, cy - s*1.0, s*0.1, s*0.06, 0.3, 0, Math.PI*2);
+    ctx.fillStyle = '#ff6b8a';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + s*0.5, cy - s*1.0, s*0.04, 0, Math.PI*2);
+    ctx.fillStyle = '#ff4070';
+    ctx.fill();
+
+    // Eyes (big, cute)
+    ctx.beginPath();
+    ctx.arc(cx + s*0.23, cy - s*0.65, s*0.07, 0, Math.PI*2);
+    ctx.fillStyle = '#333';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + s*0.47, cy - s*0.65, s*0.07, 0, Math.PI*2);
+    ctx.fill();
+
+    // Eye highlights
+    ctx.beginPath();
+    ctx.arc(cx + s*0.25, cy - s*0.67, s*0.03, 0, Math.PI*2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + s*0.49, cy - s*0.67, s*0.03, 0, Math.PI*2);
+    ctx.fill();
+
+    // Blush
+    ctx.beginPath();
+    ctx.ellipse(cx + s*0.18, cy - s*0.48, s*0.08, s*0.05, 0, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255, 150, 150, 0.5)';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + s*0.52, cy - s*0.48, s*0.08, s*0.05, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Mouth (small smile)
+    ctx.beginPath();
+    ctx.arc(cx + s*0.35, cy - s*0.48, s*0.06, 0.1, Math.PI - 0.1);
+    ctx.strokeStyle = '#c060a0';
+    ctx.lineWidth = s * 0.025;
+    ctx.stroke();
+
+    // === ARMS HUGGING ===
+    ctx.lineWidth = s * 0.07;
+    ctx.strokeStyle = '#ffe0bd';
     ctx.lineCap = 'round';
+    // Boy's arm reaching right
     ctx.beginPath();
-    ctx.moveTo(cx - s*0.15, cy - s*0.5);
-    ctx.quadraticCurveTo(cx + s*0.05, cy - s*0.7, cx + s*0.15, cy - s*0.4);
+    ctx.moveTo(cx - s*0.15, cy - s*0.1);
+    ctx.quadraticCurveTo(cx + s*0.05, cy - s*0.3, cx + s*0.15, cy - s*0.1);
     ctx.stroke();
+    // Girl's arm reaching left
     ctx.beginPath();
-    ctx.moveTo(cx + s*0.15, cy - s*0.5);
-    ctx.quadraticCurveTo(cx - s*0.05, cy - s*0.7, cx - s*0.15, cy - s*0.4);
+    ctx.moveTo(cx + s*0.15, cy - s*0.1);
+    ctx.quadraticCurveTo(cx - s*0.05, cy - s*0.3, cx - s*0.15, cy - s*0.1);
     ctx.stroke();
+
+    // === HEART BETWEEN THEM ===
+    const hx = cx, hy = cy - s*0.15;
+    const hs = s * 0.15;
+    ctx.beginPath();
+    ctx.moveTo(hx, hy + hs*0.3);
+    ctx.bezierCurveTo(hx - hs, hy - hs*0.3, hx - hs*1.5, hy + hs*0.3, hx, hy + hs*1.2);
+    ctx.bezierCurveTo(hx + hs*1.5, hy + hs*0.3, hx + hs, hy - hs*0.3, hx, hy + hs*0.3);
+    ctx.fillStyle = '#ff6b8a';
+    ctx.fill();
 
     ctx.restore();
   }
@@ -581,15 +692,8 @@
       // Update and draw petals
       for (const p of petals) p.update();
       if (phaseTime > CONFIG.phase3Duration) {
-        // Loop back to phase 1
-        currentPhase = 0;
-        phaseTime = 0;
-        convergenceProgress = 0;
-        colorTransitionProgress = 0;
-        explosionProgress = 0;
-        petals = [];
-        petalSpawned = false;
-        resize();
+        // End: stop animation
+        currentPhase = 3;
       }
     }
 

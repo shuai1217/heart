@@ -134,15 +134,38 @@
     const music = document.getElementById('bgMusic');
     const btn = document.getElementById('musicBtn');
     let playing = false;
-    btn.addEventListener('click', () => {
+
+    // Try autoplay on first interaction
+    function tryPlay() {
+      music.volume = 0.6;
+      music.play().then(() => {
+        playing = true;
+        btn.classList.add('playing');
+        btn.textContent = '♫';
+      }).catch(e => {
+        console.log('Autoplay blocked, waiting for user interaction');
+      });
+    }
+
+    // Try on first click anywhere
+    document.addEventListener('click', function firstClick() {
+      if (!playing) tryPlay();
+      document.removeEventListener('click', firstClick);
+    }, { once: true });
+
+    document.addEventListener('touchstart', function firstTouch() {
+      if (!playing) tryPlay();
+      document.removeEventListener('touchstart', firstTouch);
+    }, { once: true });
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       if (playing) {
         music.pause();
         btn.classList.remove('playing');
         btn.textContent = '♪';
       } else {
-        music.play().catch(e => {
-          console.warn('Audio play failed:', e);
-        });
+        music.play();
         btn.classList.add('playing');
         btn.textContent = '♫';
       }
