@@ -25,7 +25,7 @@
     scatterRecover: 30,
     heartScale: 12,
     focalLength: 400,
-    rotationSpeed: 0.00005,
+    rotationSpeed: 0.00001,
 
     // Phase timings (in frames at 60fps)
     convergenceDuration: 360,    // Phase 1: ~6s
@@ -99,9 +99,9 @@
     const sinT = Math.sin(t), cosT = Math.cos(t);
     const sinU = Math.sin(u), cosU = Math.cos(u);
     return {
-      x: 16 * Math.pow(sinT, 3) * sinU,
-      y: -(13 * cosT - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t)) * Math.pow(sinU, 2),
-      z: (12 * cosU + 3 * Math.cos(2*u) + 2 * Math.cos(3*u)),
+      x: 16 * Math.pow(sinT, 3) * sinU * 0.9,
+      y: -(13 * cosT - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t)) * Math.pow(sinU, 2) * 0.85,
+      z: (12 * cosU + 3 * Math.cos(2*u) + 2 * Math.cos(3*u)) * 0.6,
     };
   }
 
