@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>梦幻四季 · 骑士与公主</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Serif SC', 'SimSun', 'STSong', 'Microsoft YaHei', serif;
+    overflow: hidden;
+    width: 100vw; height: 100vh;
+    background: #0a0a2e;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* ====== SCREENS ====== */
+  .screen {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.2s ease;
+    visibility: hidden;
+  }
+  .screen.active {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+  }
+
+  /* ====== INTRO ====== */
+  #intro {
+    background: linear-gradient(135deg, #1a1a3e 0%, #2d1b4e 50%, #0a0a2e 100%);
+    flex-direction: column; gap: 20px;
+    z-index: 100;
+  }
+  #intro h1 {
+    color: #ffd4f0;
+    font-size: clamp(28px, 6vw, 52px);
+    text-shadow: 0 0 30px rgba(255,150,200,0.5);
+    animation: titleGlow 3s ease-in-out infinite alternate;
+  }
+  @keyframes titleGlow {
+    from { text-shadow: 0 0 20px rgba(255,150,200,0.3); }
+    to { text-shadow: 0 0 40px rgba(255,150,200,0.8), 0 0 80px rgba(255,100,180,0.3); }
+  }
+  #intro p {
+    color: #c8b8e8;
+    font-size: clamp(14px, 3vw, 20px);
+    opacity: 0; animation: fadeInUp 2s ease 1s forwards;
+  }
+  #intro button {
+    margin-top: 20px;
+    padding: 14px 48px;
+    border: 2px solid #ff9ec6;
+    background: transparent;
+    color: #ffd4f0;
+    font-size: clamp(16px, 3vw, 22px);
+    font-family: inherit;
+    border-radius: 50px;
+    cursor: pointer;
+    opacity: 0; animation: fadeInUp 2s ease 2s forwards;
+    transition: all 0.3s;
+  }
+  #intro button:hover {
+    background: rgba(255,158,198,0.2);
+    box-shadow: 0 0 30px rgba(255,158,198,0.4);
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ====== INTRO STARS ====== */
+  .intro-stars { position: absolute; inset: 0; overflow: hidden; }
+  .intro-star {
+    position: absolute;
+    width: 3px; height: 3px;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle var(--dur) ease-in-out infinite alternate;
+  }
+  @keyframes twinkle {
+    from { opacity: 0.2; }
+    to { opacity: 1; }
+  }
+
+  /* ====== SCENE BACKGROUNDS ====== */
+  .scene-bg {
+    position: absolute; inset: 0;
+    transition: background 2s ease;
+  }
+
+  /* Spring - bright sky with clouds */
+  #spring .scene-bg {
+    background: linear-gradient(180deg, #87CEEB 0%, #B0E0E6 25%, #E0F7FA 45%, #98FB98 70%, #90EE90 100%);
+  }
+
+  /* Summer - dark night sky */
+  #summer .scene-bg {
+    background: linear-gradient(180deg, #050510 0%, #0a0520 25%, #1a1050 50%, #1a3a2a 80%, #0a2a1a 100%);
+  }
+
+  /* Autumn - warm sunset colors */
+  #autumn .scene-bg {
+    background: linear-gradient(180deg, #FF6B35 0%, #FF8C42 15%, #FFA07A 35%, #CD853F 60%, #8B7355 85%, #6B5B3E 100%);
+  }
+
+  /* Winter - cold blue-white */
+  #winter .scene-bg {
+    background: linear-gradient(180deg, #5a7fa5 0%, #7a9ab8 20%, #a8c4dc 45%, #d4e4f0 65%, #e8f0f8 80%, #f5f8fc 100%);
+  }
+
+  /* Castle - deep night */
+  #castle .scene-bg {
+    background: linear-gradient(180deg, #020210 0%, #0a0a2e 30%, #151545 60%, #1a1a3e 100%);
+  }
+
+  /* ====== SKY ELEMENTS ====== */
+  .sky-elements {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Sun */
+  .sun {
+    position: absolute;
+    top: 6%; right: 12%;
+    width: clamp(45px, 10vw, 80px);
+    height: clamp(45px, 10vw, 80px);
+    background: radial-gradient(circle, #fff7a0, #ffd700, transparent 70%);
+    border-radius: 50%;
+    animation: sunPulse 4s ease-in-out infinite;
+  }
+  @keyframes sunPulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.15); opacity: 1; }
+  }
+
+  /* Moon */
+  .moon {
+    position: absolute;
+    top: 8%; left: 12%;
+    width: clamp(40px, 8vw, 70px);
+    height: clamp(40px, 8vw, 70px);
+    background: radial-gradient(circle, #fffff0, #fffacd, #f0e68c);
+    border-radius: 50%;
+    box-shadow: 0 0 40px rgba(255,255,200,0.5), 0 0 80px rgba(255,255,200,0.2);
+    animation: moonGlow 5s ease-in-out infinite alternate;
+  }
+  @keyframes moonGlow {
+    from { box-shadow: 0 0 40px rgba(255,255,200,0.4); }
+    to { box-shadow: 0 0 60px rgba(255,255,200,0.7), 0 0 100px rgba(255,255,200,0.3); }
+  }
+  .moon-crater {
+    position: absolute;
+    background: rgba(200,190,150,0.3);
+    border-radius: 50%;
+  }
+
+  /* Clouds */
+  .cloud {
+    position: absolute;
+    background: rgba(255,255,255,0.8);
+    border-radius: 50px;
+    animation: cloudFloat var(--speed, 30s) linear infinite;
+  }
+  .cloud::before, .cloud::after {
+    content: '';
+    position: absolute;
+    background: inherit;
+    border-radius: 50%;
+  }
+  @keyframes cloudFloat {
+    from { transform: translateX(-150px); }
+    to { transform: translateX(calc(100vw + 150px)); }
+  }
+
+  /* Stars (summer/castle) */
+  .star-field {
+    position: absolute; inset: 0;
+    pointer-events: none;
+  }
+  .star-dot {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    animation: starTwinkle var(--dur) ease-in-out infinite alternate;
+  }
+  @keyframes starTwinkle {
+    from { opacity: 0.3; transform: scale(1); }
+    to { opacity: 1; transform: scale(1.3); }
+  }
+
+  /* Aurora (castle) */
+  .aurora {
+    position: absolute;
+    top: 0; left: -10%;
+    width: 120%;
+    height: 45%;
+    background: linear-gradient(180deg,
+      transparent 0%,
+      rgba(0, 255, 150, 0.08) 20%,
+      rgba(0, 200, 255, 0.12) 40%,
+      rgba(150, 0, 255, 0.08) 60%,
+      rgba(0, 255, 100, 0.05) 80%,
+      transparent 100%
+    );
+    filter: blur(20px);
+    animation: auroraWave 8s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  @keyframes auroraWave {
+    0% { transform: skewX(-5deg) scaleY(1); opacity: 0.6; }
+    33% { transform: skewX(3deg) scaleY(1.1); opacity: 0.8; }
+    66% { transform: skewX(-2deg) scaleY(0.9); opacity: 0.7; }
+    100% { transform: skewX(4deg) scaleY(1.05); opacity: 0.9; }
+  }
+
+  /* Shooting stars */
+  .shooting-star {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #fff;
+    border-radius: 50%;
+    animation: shoot var(--shoot-dur, 2s) linear infinite;
+    animation-delay: var(--shoot-delay, 0s);
+    opacity: 0;
+  }
+  .shooting-star::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(to left, rgba(255,255,255,0.8), transparent);
+    transform-origin: left center;
+    transform: rotate(180deg);
+  }
+  @keyframes shoot {
+    0% { transform: translate(0, 0); opacity: 0; }
+    5% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { transform: translate(var(--shoot-x, -300px), var(--shoot-y, 200px)); opacity: 0; }
+  }
+
+  /* ====== GROUND / TERRAIN ====== */
+  .terrain {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 35%;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Ground hills */
+  .ground-hill {
+    position: absolute;
+    border-radius: 50%;
+  }
+
+  /* ====== SCENERY ELEMENTS ====== */
+  .scenery {
+    position: absolute;
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  /* Trees */
+  .tree {
+    position: absolute;
+  }
+  .tree-trunk {
+    background: #654321;
+    border-radius: 4px;
+  }
+  .tree-top {
+    border-radius: 50%;
+  }
+
+  /* Flowers */
+  .flower {
+    position: absolute;
+    font-size: clamp(14px, 3vw, 24px);
+    animation: flowerSway 3s ease-in-out infinite alternate;
+  }
+  @keyframes flowerSway {
+    from { transform: rotate(-5deg); }
+    to { transform: rotate(5deg); }
+  }
+
+  /* Grass tufts */
+  .grass {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  /* ====== PARTICLE LAYERS ====== */
+  .particles {
+    position: absolute; inset: 0;
+    overflow: hidden; pointer-events: none;
+    z-index: 20;
+  }
+  .particle {
+    position: absolute;
+    pointer-events: none;
+    animation: floatUp var(--dur) ease-out forwards;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(var(--ty)) scale(var(--end)); }
+  }
+
+  /* ====== CHARACTERS ====== */
+  .characters {
+    position: absolute;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: clamp(15px, 4vw, 50px);
+    align-items: flex-end;
+    z-index: 10;
+  }
+  .character {
+    transition: transform 0.5s ease;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+  }
+  .character:hover { transform: translateY(-5px); }
+
+  /* ====== DIALOGUE BUBBLE ====== */
+  .dialogue-bubble {
+    position: absolute;
+    top: 6%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px;
+    padding: 12px 22px;
+    max-width: min(480px, 82vw);
+    text-align: center;
+    font-size: clamp(12px, 2.6vw, 16px);
+    color: #333;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    opacity: 0;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    z-index: 20;
+    line-height: 1.6;
+    pointer-events: none;
+  }
+  .dialogue-bubble.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .dialogue-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 14px solid rgba(255,255,255,0.95);
+  }
+  .dialogue-speaker {
+    font-weight: 700;
+    color: #ff6b9d;
+    margin-right: 4px;
+  }
+
+  /* ====== NARRATION ====== */
+  .narration {
+    position: absolute;
+    bottom: 3%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-size: clamp(11px, 2.2vw, 14px);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.5s;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .narration.show { opacity: 1; }
+
+  /* ====== NAVIGATION ====== */
+  .nav-btn {
+    position: absolute;
+    bottom: 4%;
+    padding: 8px 20px;
+    border: 2px solid rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    font-size: clamp(11px, 2.2vw, 15px);
+    font-family: inherit;
+    border-radius: 30px;
+    cursor: pointer;
+    z-index: 30;
+    transition: all 0.3s;
+  }
+  .nav-btn:hover {
+    background: rgba(255,255,255,0.25);
+    border-color: #fff;
+  }
+  .nav-prev { right: auto; left: 4%; }
+  .nav-next { right: 4%; }
+
+  /* ====== SCENE INDICATOR ====== */
+  .scene-dots {
+    position: absolute;
+    bottom: 0.5%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 8px;
+    z-index: 30;
+  }
+  .scene-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .scene-dot.active {
+    background: #fff;
+    box-shadow: 0 0 10px rgba(255,255,255,0.8);
+    transform: scale(1.3);
+  }
+
+  /* ====== MUSIC TOGGLE ====== */
+  .music-toggle {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s;
+  }
+  .music-toggle:hover {
+    background: rgba(255,255,255,0.25);
+  }
+
+  /* ====== CLICK HINT ====== */
+  .click-hint {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255,255,255,0.6);
+    font-size: clamp(10px, 2.2vw, 13px);
+    animation: pulse 2s ease-in-out infinite;
+    z-index: 15;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.9; }
+  }
+
+  /* ====== RESPONSIVE ====== */
+  @media (max-width: 600px) {
+    .dialogue-bubble { padding: 8px 14px; max-width: 78vw; font-size: 12px; }
+    .characters { gap: 6px; bottom: 16%; }
+    .nav-btn { padding: 6px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ====== INTRO SCREEN ====== -->
+<div id="intro" class="screen active">
+  <div class="intro-stars" id="introStars"></div>
+  <h1>🌸 梦幻四季 🌸</h1>
+  <p>骑士守护公主的奇幻旅程</p>
+  <button onclick="startStory()">开始冒险 ✨</button>
+</div>
+
+<!-- ====== SPRING ====== -->
+<div id="spring" class="screen">
+  <div class="scene-bg"></div>
+  <div class="sky-elements" id="springSky">
+    <div class="sun"></div>
+    <div class="cloud" style="top:12%;width:100px;height:35px;--speed:25s"></div>
+    <div class="cloud" style="top:22%;width:80px;height:28px;--speed:35s;animation-delay:-10s"></div>
+    <div class="cloud" style="top:8%;width:60px;height:22px;--speed:40s;animation-delay:-20s"></div>
+  </div>
+  <div class="terrain" id="springTerrain"></div>
+  <div class="scenery" id="springScenery"></div>
+  <div class="particles" id="springParticles"></div>
+  <div class="characters" id="springChars"></div>
+  <div class="dialogue-bubble" id="springDialogue"></div>
+  <div class="click-hint" id="springHint">✨ 点击屏幕触发特效 ✨</div>
+  <div class="narration" id="springNarration"></div>
+  <button class="nav-btn nav-next" onclick="nextScene()">下一幕 →</button>
+</div>
+
+<!-- ====== SUMMER ====== -->
+<div id="summer" class="screen">
+  <div class="scene-bg"></div>
+  <div class="sky-elements" id="summerSky">
+    <div class="moon"></div>
+    <div class="star-field" id="summerStars"></div>
+  </div>
+  <div class="terrain" id="summerTerrain"></div>
+  <div class="scenery" id="summerScenery"></div>
+  <div class="particles" id="summerParticles"></div>
+  <div class="characters" id="summerChars"></div>
+  <div class="dialogue-bubble" id="summerDialogue"></div>
+  <div class="click-hint" id="summerHint">✨ 点击屏幕触发特效 ✨</div>
+  <div class="narration" id="summerNarration"></div>
+  <button class="nav-btn nav-next" onclick="nextScene()">下一幕 →</button>
+</div>
+
+<!-- ====== AUTUMN ====== -->
+<div id="autumn" class="screen">
+  <div class="scene-bg"></div>
+  <div class="sky-elements" id="autumnSky">
+    <div class="cloud" style="top:10%;width:90px;height:30px;background:rgba(255,220,180,0.6);--speed:30s"></div>
+  </div>
+  <div class="terrain" id="autumnTerrain"></div>
+  <div class="scenery" id="autumnScenery"></div>
+  <div class="particles" id="autumnParticles"></div>
+  <div class="characters" id="autumnChars"></div>
+  <div class="dialogue-bubble" id="autumnDialogue"></div>
+  <div class="click-hint" id="autumnHint">✨ 点击屏幕触发特效 ✨</div>
+  <div class="narration" id="autumnNarration"></div>
+  <button class="nav-btn nav-next" onclick="nextScene()">下一幕 →</button>
+</div>
+
+<!-- ====== WINTER ====== -->
+<div id="winter" class="screen">
+  <div class="scene-bg"></div>
+  <div class="sky-elements" id="winterSky">
+    <div class="cloud" style="top:15%;width:120px;height:40px;background:rgba(255,255,255,0.9);--speed:45s"></div>
+    <div class="cloud" style="top:25%;width:80px;height:28px;background:rgba(255,255,255,0.7);--speed:50s;animation-delay:-15s"></div>
+  </div>
+  <div class="terrain" id="winterTerrain"></div>
+  <div class="scenery" id="winterScenery"></div>
+  <div class="particles" id="winterParticles"></div>
+  <div class="characters" id="winterChars"></div>
+  <div class="dialogue-bubble" id="winterDialogue"></div>
+  <div class="click-hint" id="winterHint">✨ 点击屏幕触发特效 ✨</div>
+  <div class="narration" id="winterNarration"></div>
+  <button class="nav-btn nav-next" onclick="nextScene()">下一幕 →</button>
+</div>
+
+<!-- ====== CASTLE ====== -->
+<div id="castle" class="screen">
+  <div class="scene-bg"></div>
+  <div class="sky-elements" id="castleSky">
+    <div class="star-field" id="castleStars"></div>
+    <div class="aurora"></div>
+    <div class="shooting-star" style="top:15%;left:70%;--shoot-x:-400px;--shoot-y:250px;--shoot-dur:3s;--shoot-delay:0s"></div>
+    <div class="shooting-star" style="top:25%;left:50%;--shoot-x:-350px;--shoot-y:200px;--shoot-dur:2.5s;--shoot-delay:4s"></div>
+    <div class="shooting-star" style="top:10%;left:85%;--shoot-x:-300px;--shoot-y:180px;--shoot-dur:3.5s;--shoot-delay:8s"></div>
+    <div class="shooting-star" style="top:30%;left:40%;--shoot-x:-450px;--shoot-y:300px;--shoot-dur:2.8s;--shoot-delay:12s"></div>
+    <div class="shooting-star" style="top:8%;left:60%;--shoot-x:-380px;--shoot-y:220px;--shoot-dur:3.2s;--shoot-delay:16s"></div>
+  </div>
+  <div class="terrain" id="castleTerrain"></div>
+  <div class="scenery" id="castleScenery">
+    <!-- Castle SVG -->
+    <svg style="position:absolute;bottom:15%;left:50%;transform:translateX(-50%);width:clamp(180px,45vw,350px);z-index:3" viewBox="0 0 400 450">
+      <!-- Main tower -->
+      <rect x="130" y="100" width="140" height="350" fill="#3a3a5a" rx="4"/>
+      <rect x="140" y="120" width="25" height="35" rx="12" fill="#ffd700" opacity="0.7"/>
+      <rect x="188" y="120" width="25" height="35" rx="12" fill="#ffd700" opacity="0.7"/>
+      <rect x="140" y="180" width="25" height="35" rx="12" fill="#ffd700" opacity="0.5"/>
+      <rect x="188" y="180" width="25" height="35" rx="12" fill="#ffd700" opacity="0.5"/>
+      <rect x="140" y="240" width="25" height="35" rx="12" fill="#ffd700" opacity="0.35"/>
+      <rect x="188" y="240" width="25" height="35" rx="12" fill="#ffd700" opacity="0.35"/>
+      <rect x="140" y="300" width="25" height="35" rx="12" fill="#ffd700" opacity="0.2"/>
+      <rect x="188" y="300" width="25" height="35" rx="12" fill="#ffd700" opacity="0.2"/>
+      <polygon points="130,100 200,20 270,100" fill="#4a4a6a"/>
+      <!-- Left tower -->
+      <rect x="40" y="170" width="80" height="280" fill="#3a3a5a" rx="4"/>
+      <polygon points="40,170 80,100 120,170" fill="#4a4a6a"/>
+      <rect x="55" y="190" width="18" height="28" rx="9" fill="#ffd700" opacity="0.6"/>
+      <rect x="85" y="190" width="18" height="28" rx="9" fill="#ffd700" opacity="0.6"/>
+      <rect x="55" y="240" width="18" height="28" rx="9" fill="#ffd700" opacity="0.4"/>
+      <rect x="85" y="240" width="18" height="28" rx="9" fill="#ffd700" opacity="0.4"/>
+      <!-- Right tower -->
+      <rect x="280" y="170" width="80" height="280" fill="#3a3a5a" rx="4"/>
+      <polygon points="280,170 320,100 360,170" fill="#4a4a6a"/>
+      <rect x="295" y="190" width="18" height="28" rx="9" fill="#ffd700" opacity="0.6"/>
+      <rect x="325" y="190" width="18" height="28" rx="9" fill="#ffd700" opacity="0.6"/>
+      <rect x="295" y="240" width="18" height="28" rx="9" fill="#ffd700" opacity="0.4"/>
+      <rect x="325" y="240" width="18" height="28" rx="9" fill="#ffd700" opacity="0.4"/>
+      <!-- Gate -->
+      <ellipse cx="200" cy="430" rx="30" ry="25" fill="#1a1a3a"/>
+      <rect x="170" y="400" width="60" height="55" rx="30" fill="#1a1a3a"/>
+      <!-- Flag -->
+      <line x1="200" y1="20" x2="200" y2="-10" stroke="#888" stroke-width="2"/>
+      <polygon points="200,-10 230,5 200,20" fill="#ff6b9d"/>
+      <!-- Steps -->
+      <rect x="140" y="440" width="120" height="10" rx="3" fill="#5a5a7a"/>
+      <rect x="150" y="450" width="100" height="10" rx="3" fill="#4a4a6a"/>
+    </svg>
+    <!-- Street lamps -->
+    <svg style="position:absolute;bottom:18%;left:28%;width:30px;height:80px;z-index:4" viewBox="0 0 30 80">
+      <rect x="13" y="10" width="4" height="70" fill="#555"/>
+      <circle cx="15" cy="8" r="8" fill="#ffd700" opacity="0.6"/>
+      <circle cx="15" cy="8" r="15" fill="#ffd700" opacity="0.15"/>
+    </svg>
+    <svg style="position:absolute;bottom:18%;right:28%;width:30px;height:80px;z-index:4" viewBox="0 0 30 80">
+      <rect x="13" y="10" width="4" height="70" fill="#555"/>
+      <circle cx="15" cy="8" r="8" fill="#ffd700" opacity="0.6"/>
+      <circle cx="15" cy="8" r="15" fill="#ffd700" opacity="0.15"/>
+    </svg>
+    <!-- Flag poles on towers -->
+    <svg style="position:absolute;bottom:38%;left:calc(50% - 18%);width:20px;height:40px;z-index:5" viewBox="0 0 20 40">
+      <line x1="10" y1="40" x2="10" y2="0" stroke="#888" stroke-width="1.5"/>
+      <polygon points="10,0 30,10 10,20" fill="#ff6b9d" opacity="0.8"/>
+    </svg>
+    <svg style="position:absolute;bottom:38%;right:calc(50% - 18%);width:20px;height:40px;z-index:5" viewBox="0 0 20 40">
+      <line x1="10" y1="40" x2="10" y2="0" stroke="#888" stroke-width="1.5"/>
+      <polygon points="10,0 30,10 10,20" fill="#6bc5ff" opacity="0.8"/>
+    </svg>
+  </div>
+  <div class="particles" id="castleParticles"></div>
+  <div class="characters" id="castleChars"></div>
+  <div class="dialogue-bubble" id="castleDialogue"></div>
+  <div class="click-hint" id="castleHint">✨ 点击屏幕触发特效 ✨</div>
+  <div class="narration" id="castleNarration"></div>
+  <button class="nav-btn nav-prev" onclick="prevScene()">← 上一幕</button>
+  <button class="nav-btn nav-next" onclick="restartStory()" style="right:auto;left:4%">重新开始</button>
+</div>
+
+<!-- Scene dots -->
+<div class="scene-dots" id="sceneDots" style="display:none">
+  <div class="scene-dot" data-scene="0" onclick="goToScene(0)"></div>
+  <div class="scene-dot" data-scene="1" onclick="goToScene(1)"></div>
+  <div class="scene-dot" data-scene="2" onclick="goToScene(2)"></div>
+  <div class="scene-dot" data-scene="3" onclick="goToScene(3)"></div>
+  <div class="scene-dot" data-scene="4" onclick="goToScene(4)"></div>
+</div>
+
+<!-- Music toggle -->
+<button class="music-toggle" id="musicToggle" onclick="toggleMusic()" style="display:none">🎵</button>
+
+<script>
+// ====== CHARACTER SVG GENERATORS ======
+function createPrincessSVG(size) {
+  const s = size || 1;
+  return `<svg width="${Math.round(75*s)}" height="${Math.round(115*s)}" viewBox="0 0 80 120">
+    <!-- Hair flowing -->
+    <ellipse cx="40" cy="22" rx="18" ry="16" fill="#5a3a1a"/>
+    <ellipse cx="26" cy="30" rx="10" ry="22" fill="#5a3a1a"/>
+    <ellipse cx="54" cy="30" rx="10" ry="22" fill="#5a3a1a"/>
+    <ellipse cx="22" cy="45" rx="7" ry="18" fill="#5a3a1a" opacity="0.8"/>
+    <ellipse cx="58" cy="45" rx="7" ry="18" fill="#5a3a1a" opacity="0.8"/>
+    <!-- Crown -->
+    <polygon points="25,10 30,2 35,10 40,0 45,10 50,2 55,10" fill="#ffd700"/>
+    <circle cx="30" cy="8" r="1.5" fill="#ff6b9d"/>
+    <circle cx="40" cy="2" r="1.5" fill="#6bc5ff"/>
+    <circle cx="50" cy="8" r="1.5" fill="#ff6b9d"/>
+    <!-- Face -->
+    <ellipse cx="40" cy="25" rx="14" ry="13" fill="#ffe0cc"/>
+    <!-- Eyes (bigger, cuter) -->
+    <ellipse cx="34" cy="24" rx="3.5" ry="4" fill="#3a2a1a"/>
+    <ellipse cx="46" cy="24" rx="3.5" ry="4" fill="#3a2a1a"/>
+    <circle cx="35.5" cy="22.5" r="1.3" fill="#fff"/>
+    <circle cx="47.5" cy="22.5" r="1.3" fill="#fff"/>
+    <!-- Eyelashes -->
+    <path d="M30 21 Q31 19 32 20" stroke="#3a2a1a" stroke-width="0.8" fill="none"/>
+    <path d="M50 21 Q49 19 48 20" stroke="#3a2a1a" stroke-width="0.8" fill="none"/>
+    <!-- Blush -->
+    <ellipse cx="27" cy="30" rx="5" ry="2.5" fill="#ffb6c1" opacity="0.5"/>
+    <ellipse cx="53" cy="30" rx="5" ry="2.5" fill="#ffb6c1" opacity="0.5"/>
+    <!-- Mouth (small smile) -->
+    <path d="M36 31 Q40 35 44 31" stroke="#ff8a8a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <!-- Neck -->
+    <rect x="36" y="36" width="8" height="5" rx="3" fill="#ffe0cc"/>
+    <!-- Dress body -->
+    <path d="M28 41 Q20 55 12 95 L68 95 Q60 55 52 41 Z" fill="#ff6b9d"/>
+    <!-- Dress highlight -->
+    <path d="M28 41 Q20 55 12 95 L68 95 Q60 55 52 41 Z" fill="url(#dressGrad)" opacity="0.4"/>
+    <!-- Collar -->
+    <path d="M30 41 Q40 48 50 41" stroke="#fff" stroke-width="2" fill="none"/>
+    <!-- Belt -->
+    <rect x="25" y="55" width="30" height="5" rx="2.5" fill="#ffd700"/>
+    <circle cx="40" cy="57.5" r="4" fill="#ff6b9d"/>
+    <circle cx="40" cy="57.5" r="2" fill="#ffd700"/>
+    <!-- Skirt ruffles -->
+    <path d="M12 95 Q20 90 28 95 Q36 90 40 95 Q44 90 52 95 Q60 90 68 95" stroke="#ff9ec6" stroke-width="2" fill="none"/>
+    <!-- Arms -->
+    <path d="M28 45 Q18 52 15 65" stroke="#ffe0cc" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M52 45 Q62 52 65 65" stroke="#ffe0cc" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <!-- Hands -->
+    <circle cx="15" cy="66" r="3.5" fill="#ffe0cc"/>
+    <circle cx="65" cy="66" r="3.5" fill="#ffe0cc"/>
+    <!-- Legs -->
+    <rect x="30" y="93" width="7" height="16" rx="3" fill="#ffe0cc"/>
+    <rect x="43" y="93" width="7" height="16" rx="3" fill="#ffe0cc"/>
+    <!-- Shoes -->
+    <ellipse cx="33" cy="111" rx="7" ry="4" fill="#ff6b9d"/>
+    <ellipse cx="47" cy="111" rx="7" ry="4" fill="#ff6b9d"/>
+    <defs>
+      <linearGradient id="dressGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ff9ec6"/>
+        <stop offset="100%" stop-color="#ff4080"/>
+      </linearGradient>
+    </defs>
+  </svg>`;
+}
+
+function createKnightSVG(size) {
+  const s = size || 1;
+  return `<svg width="${Math.round(68*s)}" height="${Math.round(118*s)}" viewBox="0 0 70 120">
+    <!-- Helmet dome -->
+    <ellipse cx="35" cy="17" rx="17" ry="15" fill="#8899aa"/>
+    <!-- Helmet ridge -->
+    <path d="M35 2 L35 28" stroke="#99aabb" stroke-width="2"/>
+    <!-- Visor -->
+    <rect x="20" y="15" width="30" height="5" rx="2" fill="#7788aa"/>
+    <rect x="26" y="17" width="18" height="2.5" rx="1" fill="#222"/>
+    <!-- Helmet plume -->
+    <path d="M35 2 Q42 -12 55 -6 Q48 2 35 2" fill="#ff6b9d"/>
+    <path d="M35 2 Q40 -8 50 -3 Q45 2 35 2" fill="#ff8fb5"/>
+    <!-- Face through visor -->
+    <ellipse cx="35" cy="24" rx="11" ry="10" fill="#ffe0cc"/>
+    <!-- Eyes -->
+    <ellipse cx="31" cy="23" rx="2.5" ry="3" fill="#3a2a1a"/>
+    <ellipse cx="39" cy="23" rx="2.5" ry="3" fill="#3a2a1a"/>
+    <circle cx="32" cy="21.5" r="1" fill="#fff"/>
+    <circle cx="40" cy="21.5" r="1" fill="#fff"/>
+    <!-- Mouth (gentle smile) -->
+    <path d="M32 29 Q35 31 38 29" stroke="#cc8866" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <!-- Neck guard -->
+    <rect x="24" y="32" width="22" height="5" rx="2" fill="#7788aa"/>
+    <!-- Body / Armor -->
+    <path d="M24 37 L18 72 L52 72 L46 37 Z" fill="#8899aa"/>
+    <!-- Armor highlight -->
+    <path d="M24 37 L18 72 L52 72 L46 37 Z" fill="url(#armorGrad)" opacity="0.3"/>
+    <!-- Chest plate line -->
+    <line x1="35" y1="37" x2="35" y2="72" stroke="#7788aa" stroke-width="1"/>
+    <!-- Chest emblem -->
+    <polygon points="35,40 31,48 39,48" fill="#ff6b9d"/>
+    <!-- Shoulder pads -->
+    <ellipse cx="18" cy="40" rx="8" ry="5" fill="#7788aa"/>
+    <ellipse cx="52" cy="40" rx="8" ry="5" fill="#7788aa"/>
+    <!-- Belt -->
+    <rect x="16" y="68" width="38" height="6" rx="2" fill="#5a3a1a"/>
+    <rect x="30" y="67" width="10" height="8" rx="2" fill="#ffd700"/>
+    <circle cx="35" cy="71" r="3" fill="#ff6b9d"/>
+    <!-- Arms -->
+    <path d="M20 42 L10 58 L13 62" stroke="#8899aa" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <path d="M50 42 L60 58 L57 62" stroke="#8899aa" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <!-- Gauntlets -->
+    <circle cx="13" cy="63" r="4" fill="#7788aa"/>
+    <circle cx="57" cy="63" r="4" fill="#7788aa"/>
+    <!-- Shield (left arm) -->
+    <ellipse cx="5" cy="58" rx="10" ry="16" fill="#6677aa"/>
+    <ellipse cx="5" cy="58" rx="8" ry="13" fill="#5566aa"/>
+    <polygon points="5,44 0,56 5,68 10,56" fill="#ff6b9d"/>
+    <!-- Sword (right arm, pointing down) -->
+    <line x1="57" y1="63" x2="67" y2="90" stroke="#bbb" stroke-width="3" stroke-linecap="round"/>
+    <line x1="64" y1="88" x2="70" y2="92" stroke="#ffd700" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="55" y1="60" x2="60" y2="60" stroke="#ffd700" stroke-width="3" stroke-linecap="round"/>
+    <!-- Legs / Greaves -->
+    <rect x="23" y="74" width="10" height="24" rx="3" fill="#8899aa"/>
+    <rect x="37" y="74" width="10" height="24" rx="3" fill="#8899aa"/>
+    <!-- Knee guards -->
+    <ellipse cx="28" cy="84" rx="6" ry="4" fill="#7788aa"/>
+    <ellipse cx="42" cy="84" rx="6" ry="4" fill="#7788aa"/>
+    <!-- Boots -->
+    <ellipse cx="28" cy="100" rx="9" ry="5" fill="#5a3a1a"/>
+    <ellipse cx="42" cy="100" rx="9" ry="5" fill="#5a3a1a"/>
+    <defs>
+      <linearGradient id="armorGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#aabbcc"/>
+        <stop offset="100%" stop-color="#6677aa"/>
+      </linearGradient>
+    </defs>
+  </svg>`;
+}
+
+// ====== SCENE DATA ======
+const scenes = ['spring','summer','autumn','winter','castle'];
+let currentScene = -1;
+let clickCount = {};
+let musicPlaying = false;
+let audioCtx = null;
+let musicNodes = [];
+let ambientTimers = {};
+
+const sceneData = {
+  spring: {
+    clicks: [
+      { emoji: '🌸', count: 10, dialogue: { speaker: '公主', text: '哇！樱花开了，好美！' }, narration: '春风拂过，樱花树绽放出第一朵花...' },
+      { emoji: '🦋', count: 8, dialogue: { speaker: '骑士', text: '公主，小心花粉过敏。' }, narration: '彩色的蝴蝶在花丛中翩翩起舞...' },
+      { emoji: '🐦', count: 6, dialogue: { speaker: '公主', text: '小鸟也在唱歌呢！' }, narration: '枝头的小鸟叽叽喳喳叫个不停...' },
+      { emoji: '💖', count: 4, dialogue: { speaker: '骑士', text: '只要公主喜欢，这片花海永远为您绽放。' }, narration: '阳光透过花瓣，洒下斑驳的光影...' },
+    ]
+  },
+  summer: {
+    clicks: [
+      { emoji: '✨', count: 12, dialogue: { speaker: '公主', text: '萤火虫！像星星掉下来了！' }, narration: '夏夜的森林里，萤火虫点亮了黑暗...' },
+      { emoji: '🌙', count: 8, dialogue: { speaker: '骑士', text: '月亮真美，但不及公主万一。' }, narration: '弯弯的月牙挂在树梢上...' },
+      { emoji: '🎆', count: 6, dialogue: { speaker: '公主', text: '骑士，我们一起数星星好不好？' }, narration: '银河横跨天际，星光璀璨...' },
+      { emoji: '💫', count: 4, dialogue: { speaker: '骑士', text: '一颗两颗...不，有公主在，星星都数不过来了。' }, narration: '两颗心在星空下悄悄靠近...' },
+    ]
+  },
+  autumn: {
+    clicks: [
+      { emoji: '🍂', count: 10, dialogue: { speaker: '公主', text: '落叶像金色的蝴蝶在飞～' }, narration: '秋风起，金黄的叶子纷纷飘落...' },
+      { emoji: '🦊', count: 6, dialogue: { speaker: '公主', text: '看！有一只小狐狸！' }, narration: '一只红色的小狐狸从枫叶堆里钻出来...' },
+      { emoji: '🍁', count: 8, dialogue: { speaker: '骑士', text: '公主喜欢的话，我帮您捡一片最红的。' }, narration: '枫叶红了，像晚霞一样绚烂...' },
+      { emoji: '💛', count: 4, dialogue: { speaker: '公主', text: '有骑士陪着，秋天也是温暖的。' }, narration: '骑士的目光始终追随着公主的身影...' },
+    ]
+  },
+  winter: {
+    clicks: [
+      { emoji: '❄️', count: 12, dialogue: { speaker: '公主', text: '下雪啦！好漂亮的雪花！' }, narration: '第一场雪降临，世界变得银装素裹...' },
+      { emoji: '⛄', count: 8, dialogue: { speaker: '公主', text: '我们来堆雪人吧！' }, narration: '雪地上留下了两串小小的脚印...' },
+      { emoji: '🔥', count: 6, dialogue: { speaker: '骑士', text: '公主冷不冷？靠近一点。' }, narration: '篝火在雪地中温暖地燃烧着...' },
+      { emoji: '❤️', count: 4, dialogue: { speaker: '公主', text: '有你在身边，冬天也不冷了。' }, narration: '火光映照着两张温暖的脸庞...' },
+    ]
+  },
+  castle: {
+    clicks: [
+      { emoji: '⭐', count: 14, dialogue: { speaker: '公主', text: '城堡顶端的星空，是见过最美的！' }, narration: '城堡矗立在山顶，星光洒满全身...' },
+      { emoji: '🏰', count: 10, dialogue: { speaker: '骑士', text: '这座城堡，就是公主梦想中的家吗？' }, narration: '古老的城堡在月光下散发着神秘的光芒...' },
+      { emoji: '👑', count: 8, dialogue: { speaker: '公主', text: '不是城堡，是有你的地方才是家。' }, narration: '公主的话让骑士的心跳漏了一拍...' },
+      { emoji: '💕', count: 5, dialogue: { speaker: '骑士', text: '我会用一生守护公主的笑容。' }, narration: '星空下，骑士单膝跪地，轻轻握住公主的手...' },
+      { emoji: '🌟', count: 1, dialogue: { speaker: '旁白', text: '从此，骑士与公主在城堡里过上了幸福的生活。四季轮回，守护永不改变。' }, narration: '—— 全剧终 ——' },
+    ]
+  }
+};
+
+// ====== SCENE SCENERY BUILDERS ======
+function buildSpringScenery() {
+  const terrain = document.getElementById('springTerrain');
+  const scenery = document.getElementById('springScenery');
+  let terrainHTML = '';
+  let sceneryHTML = '';
+
+  // Green rolling hills
+  terrainHTML += `<div style="position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(180deg,#7CCD7C,#55AA55);border-radius:0 0 0 0;"></div>`;
+  terrainHTML += `<div style="position:absolute;bottom:0;left:0;width:50%;height:30%;background:#6BBF6B;border-radius:0 60% 0 0;"></div>`;
+  terrainHTML += `<div style="position:absolute;bottom:0;right:0;width:55%;height:28%;background:#6BBF6B;border-radius:60% 0 0 0;"></div>`;
+
+  // Grass tufts
+  for (let i = 0; i < 15; i++) {
+    const x = 5 + Math.random() * 90;
+    const y = 55 + Math.random() * 35;
+    const size = 8 + Math.random() * 12;
+    terrainHTML += `<div style="position:absolute;bottom:${y}%;left:${x}%;font-size:${size}px;">🌿</div>`;
+  }
+
+  // Flowers on ground
+  const flowerEmojis = ['🌷','🌻','🌼','🌺','💐','🌹'];
+  for (let i = 0; i < 25; i++) {
+    const x = Math.random() * 95;
+    const y = 55 + Math.random() * 35;
+    const f = flowerEmojis[Math.floor(Math.random() * flowerEmojis.length)];
+    sceneryHTML += `<div class="flower" style="position:absolute;bottom:${y}%;left:${x}%;font-size:${14+Math.random()*10}px;animation-delay:${Math.random()*3}s;">${f}</div>`;
+  }
+
+  // Big cherry blossom tree (left)
+  sceneryHTML += `<div style="position:absolute;bottom:15%;left:8%;width:clamp(80px,18vw,160px);z-index:5;">
+    <svg viewBox="0 0 120 200" style="width:100%;">
+      <!-- Trunk -->
+      <rect x="50" y="100" width="20" height="100" fill="#654321" rx="6"/>
+      <rect x="45" y="140" width="8" height="40" fill="#654321" rx="3" transform="rotate(-20,49,160)"/>
+      <rect x="67" y="130" width="8" height="45" fill="#654321" rx="3" transform="rotate(15,71,155)"/>
+      <!-- Branches -->
+      <line x1="60" y1="120" x2="30" y2="80" stroke="#654321" stroke-width="6" stroke-linecap="round"/>
+      <line x1="60" y1="120" x2="90" y2="75" stroke="#654321" stroke-width="6" stroke-linecap="round"/>
+      <line x1="60" y1="100" x2="20" y2="60" stroke="#654321" stroke-width="4" stroke-linecap="round"/>
+      <line x1="60" y1="100" x2="100" y2="55" stroke="#654321" stroke-width="4" stroke-linecap="round"/>
+      <!-- Blossom canopy -->
+      <ellipse cx="60" cy="50" rx="55" ry="45" fill="#FFB7C5" opacity="0.7"/>
+      <ellipse cx="35" cy="55" rx="35" ry="30" fill="#FFC0CB" opacity="0.6"/>
+      <ellipse cx="85" cy="50" rx="35" ry="30" fill="#FFC0CB" opacity="0.6"/>
+      <ellipse cx="55" cy="35" rx="30" ry="25" fill="#FFD1DC" opacity="0.5"/>
+      <!-- Blossom dots -->
+      <circle cx="40" cy="45" r="8" fill="#FFB7C5" opacity="0.8"/>
+      <circle cx="70" cy="40" r="10" fill="#FFB7C5" opacity="0.8"/>
+      <circle cx="55" cy="55" r="7" fill="#FFC0CB" opacity="0.8"/>
+      <circle cx="80" cy="55" r="9" fill="#FFB7C5" opacity="0.7"/>
+      <circle cx="30" cy="60" r="8" fill="#FFD1DC" opacity="0.7"/>
+    </svg>
+  </div>`;
+
+  // Second tree (right, smaller)
+  sceneryHTML += `<div style="position:absolute;bottom:15%;right:10%;width:clamp(60px,14vw,120px);z-index:5;opacity:0.8;">
+    <svg viewBox="0 0 100 180" style="width:100%;">
+      <rect x="42" y="90" width="16" height="90" fill="#654321" rx="5"/>
+      <ellipse cx="50" cy="55" rx="45" ry="38" fill="#FFB7C5" opacity="0.6"/>
+      <ellipse cx="35" cy="60" rx="30" ry="25" fill="#FFC0CB" opacity="0.5"/>
+      <ellipse cx="65" cy="50" rx="28" ry="24" fill="#FFD1DC" opacity="0.5"/>
+    </svg>
+  </div>`;
+
+  // Small stream
+  sceneryHTML += `<div style="position:absolute;bottom:5%;left:20%;width:60%;height:12%;z-index:3;">
+    <svg viewBox="0 0 300 40" style="width:100%;height:100%;">
+      <path d="M0 20 Q50 10 100 20 Q150 30 200 20 Q250 10 300 20" stroke="#87CEEB" stroke-width="8" fill="none" opacity="0.6"/>
+      <path d="M0 20 Q50 10 100 20 Q150 30 200 20 Q250 10 300 20" stroke="#B0E0E6" stroke-width="4" fill="none" opacity="0.8"/>
+    </svg>
+  </div>`;
+
+  // Mushrooms
+  const mushPositions = [[12,65],[85,62],[45,72],[70,68]];
+  mushPositions.forEach(([x,y]) => {
+    sceneryHTML += `<div style="position:absolute;bottom:${y}%;left:${x}%;font-size:18px;z-index:6;">🍄</div>`;
+  });
+
+  // Rabbit
+  sceneryHTML += `<div style="position:absolute;bottom:22%;left:40%;font-size:28px;z-index:6;animation:pulse 3s ease-in-out infinite;">🐰</div>`;
+
+  terrain.innerHTML = terrainHTML;
+  scenery.innerHTML = sceneryHTML;
+}
+
+function buildSummerScenery() {
+  const terrain = document.getElementById('summerTerrain');
+  const scenery = document.getElementById('summerScenery');
+  let terrainHTML = '';
+  let sceneryHTML = '';
+
+  // Dark forest ground
+  terrainHTML += `<div style="position:absolute;bottom:0;left:0;right:0;height:35%;background:linear-gradient(180deg,#0a2a1a,#0a1a0a);"></div>`;
+  terrainHTML += `<div style="position:absolute;bottom:0;left:0;width:40%;height:25%;background:#0a2520;border-radius:0 40% 0 0;"></div>`;
+  terrainHTML += `<div style="position:absolute;bottom:0;right:0;width:45%;height:22%;background:#0a2520;border-radius:40% 0 0 0;"></div>`;
+
+  // Fireflies scattered everywhere
+  for (let i = 0; i < 30; i++) {
+    const x = Math.random() * 100;
+    const y = 20 + Math.random() * 60;
+    const size = 4 + Math.random() * 6;
+    sceneryHTML += `<div style="position:absolute;bottom:${y}%;left:${x}%;font-size:${size}px;color:#ffff88;text-shadow:0 0 8px #ffff00,0 0 16px #ffff00;animation:twinkle ${1+Math.random()*2}s ease-in-out infinite alternate;animation-delay:${Math.random()*2}s;pointer-events:none;z-index:6;">✦</div>`;
+  }
+
+  // Big trees (left and right)
+  sceneryHTML += `<div style="position:absolute;bottom:12%;left:3%;width:clamp(100px,22vw,200px);z-index:5;">
+    <svg viewBox="0 0 150 250" style="width:100%;">
+      <rect x="65" y="120" width="20" height="130" fill="#3a2a1a" rx="6"/>
+      <ellipse cx="75" cy="80" rx="65" ry="55" fill="#0a3a1a" opacity="0.9"/>
+      <ellipse cx="55" cy="90" rx="45" ry="40" fill="#0a4a2a" opacity="0.8"/>
+      <ellipse cx="95" cy="85" rx="40" ry="38" fill="#0a4a2a" opacity="0.8"/>
+      <ellipse cx="75" cy="55" rx="40" ry="35" fill="#0a5a3a" opacity="0.7"/>
+    </svg>
+  </div>`;
+
+  sceneryHTML += `<div style="position:absolute;bottom:12%;right:5%;width:clamp(80px,18vw,160px);z-index:5;">
+    <svg viewBox="0 0 130 220" style="width:100%;">
+      <rect x="55" y="110" width="18" height="110" fill="#3a2a1a" rx="5"/>
+      <ellipse cx="65" cy="75" rx="55" ry="48" fill="#0a3a1a" opacity="0.9"/>
+      <ellipse cx="50" cy="85" rx="38" ry="35" fill="#0a4a2a" opacity="0.8"/>
+      <ellipse cx="80" cy="80" rx="35" ry="33" fill="#0a4a2a" opacity="0.8"/>
+    </svg>
+  </div>`;
+
+  // Pond
+  sceneryHTML += `<div style="position:absolute;bottom:8%;left:35%;width:30%;height:15%;z-index:3;">
+    <svg viewBox="0 0 200 50" style="width:100%;height:100%;">
+      <ellipse cx="100" cy="25" rx="90" ry="22" fill="#1a3a5a" opacity="0.7"/>
+      <ellipse cx="100" cy="25" rx="80" ry="18" fill="#2a5a7a" opacity="0.5"/>
+      <ellipse cx="60" cy="20" rx="15" ry="8" fill="#ff6b9d" opacity="0.6"/>
+      <ellipse cx="130" cy="22" rx="12" ry="7" fill="#ff6b9d" opacity="0.5"/>
+      <ellipse cx="90" cy="28" rx="10" ry="5" fill="#ff9ec6" opacity="0.4"/>
+    </svg>
+  </div>`;
+
+  // Lotus flowers
+  sceneryHTML += `<div style="position:absolute;bottom:12%;left:42%;font-size:20px;z-index:6;">🪷</div>`;
+  sceneryHTML += `<div style="position:absolute;bottom:11%;left:55%;font-size:16px;z-index:6;">🪷</div>`;
+
+  // Grass
+  for (let i = 0; i < 20; i++) {
+    const x = Math.random() * 100;
+    const y = 55 + Math.random() * 30;
+    terrainHTML += `<div style="position:absolute;bottom:${y}%;left:${x}%;font-size:${10+Math.random()*8}px;opacity:0.7;">🌿</div>`;
+  }
+
+  terrain.innerHTML = terrainHTML;
+  scenery.innerHTML = sceneryHTML;
+}
+
+function buildAutumnScenery() {
+  const terrain = document.getElementById('autumnTerrain');
+  const scenery = document.getElementById('autumnScenery');
+  let terrainHTML = '';
+  let sceneryHTML = '';
+
+  // Golden-brown ground
+  terrainHTML += `<div style="position:absolute;bottom:0;left:0;right:0;height:35%;background:linear-gradient(180deg,#8B7355,#6B5B3E);"></div>`;
+  terrainHTML += `<div style="position:absolute;bottom:0;left:0;width:45%;height:25%;background:#7B6345;border-radius:0 50% 0 0;"></div>`;
+  terrainHTML += `<div style="position:absolute;bottom:0;right:0;width:50%;height:28%;background:#7B6345;border-radius:50% 0 0 0;"></div>`;
+
+  // Fallen leaves everywhere
+  const leafEmojis = ['🍂','🍁','🍃'];
+  for (let i = 0; i < 30; i++) {
+    const x = Math.random() * 100;
+    const y = 50 + Math.random() * 40;
+    const f = leafEmojis[Math.floor(Math.random() * leafEmojis.length)];
+    sceneryHTML += `<div style="position:absolute;bottom:${y}%;left:${x}%;font-size:${10+Math.random()*10}px;transform:rotate(${Math.random()*360}deg);opacity:0.7;pointer-events:none;z-index:5;">${f}</div>`;
+  }
+
+  // Maple tree (big, left)
+  sceneryHTML += `<div style="position:absolute;bottom:12%;left:5%;width:clamp(90px,20vw,180px);z-index:5;">
+    <svg viewBox="0 0 130 230" style="width:100%;">
+      <rect x="55" y="120" width="18" height="110" fill="#5a3a1a" rx="5"/>
+      <ellipse cx="65" cy="70" rx="58" ry="50" fill="#CC4400" opacity="0.8"/>
+      <ellipse cx="45" cy="80" rx="40" ry="35" fill="#DD5500" opacity="0.7"/>
+      <ellipse cx="85" cy="75" rx="38" ry="33" fill="#CC3300" opacity="0.7"/>
+      <ellipse cx="65" cy="45" rx="35" ry="30" fill="#EE6600" opacity="0.6"/>
+      <ellipse cx="50" cy="60" rx="25" ry="22" fill="#FF8833" opacity="0.5"/>
+    </svg>
+  </div>`;
+
+  // Second tree (right, orange)
+  sceneryHTML += `<div style="position:absolute;bottom:12%;right:8%;width:clamp(70px,16vw,140px);z-index:5;">
+    <svg viewBox="0 0 110 200" style="width:100%;">
+      <rect x="47" y="100" width="16" height="100" fill="#5a3a1a" rx="4"/>
+      <ellipse cx="55" cy="65" rx="50" ry="42" fill="#DD8800" opacity="0.8"/>
+      <ellipse cx="40" cy="72" rx="35" ry="30" fill="#CC7700" opacity="0.7"/>
+      <ellipse cx="70" cy="68" rx="32" ry="28" fill="#EE9900" opacity="0.7"/>
+    </svg>
+  </div>`;
+
+  // Wheat field
+  for (let i = 0; i < 20; i++) {
+    const x = 20 + Math.random() * 60;
+    const y = 55 + Math.random() * 25;
+    sceneryHTML += `<div style="position:absolute;bottom:${y}%;left:${x}%;font-size:${14+Math.random()*8}px;opacity:0.6;pointer-events:none;z-index:4;">🌾</div>`;
+  }
+
+  // Mushrooms
+  sceneryHTML += `<div style="position:absolute;bottom:20%;left:25%;font-size:20px;z-index:6;">🍄</div>`;
+  sceneryHTML += `<div style="position:absolute;bottom:22%;right:30%;font-size:16px;z-index:6;">🍄</div>`;
+
+  // Squirrel
+  sceneryHTML += `<div style="position:absolute;bottom:18%;left:55%;font-size:24px;z-index:6;animation:pulse 4s ease-in-out infinite;">🐿️</div>`;
+
+  terrain.innerHTML = terrainHTML;
+  scenery.innerHTML = sceneryHTML;
+}
+
+function buildWinterScenery() {
+  const terrain = document.getElementById('winterTerrain');
+  const scenery = document.getElementById('winterScenery');
+  let terrainHTML = '';
+  let sceneryHTML = '';
+
+  // Snow ground
+  terrainHTML += `<div style="position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(180deg,#d4e4f0,#e8f0f8,#f5f8fc);"></div>`;
+  terrainHTML += `<div style="position:absolute;bottom:0;left:0;width:40%;height:28%;background:#e0ecf5;border-radius:0 50% 0 0;"></div>`;
+  terrainHTML += `<div style="position:absolute;bottom:0;right:0;width:45%;height:30%;background:#e0ecf5;border-radius:50% 0 0 0;"></div>`;
+
+  // Ice lake
+  sceneryHTML += `<div style="position:absolute;bottom:5%;left:25%;width:50%;height:18%;z-index:3;">
+    <svg viewBox="0 0 300 60" style="width:100%;height:100%;">
+      <ellipse cx="150" cy="30" rx="140" ry="25" fill="#a8c4dc" opacity="0.5"/>
+      <ellipse cx="150" cy="30" rx="130" ry="22" fill="#bcd0e0" opacity="0.4"/>
+      <line x1="50" y1="25" x2="250" y2="28" stroke="#fff" stroke-width="1" opacity="0.3"/>
+      <line x1="80" y1="35" x2="220" y2="33" stroke="#fff" stroke-width="1" opacity="0.2"/>
+    </svg>
+  </div>`;
+
+  // Pine trees
+  sceneryHTML += `<div style="position:absolute;bottom:15%;left:8%;width:clamp(50px,12vw,100px);z-index:5;">
+    <svg viewBox="0 0 80 160" style="width:100%;">
+      <rect x="35" y="120" width="10" height="40" fill="#5a3a1a" rx="3"/>
+      <polygon points="40,10 10,60 70,60" fill="#1a4a2a"/>
+      <polygon points="40,30 15,80 65,80" fill="#1a5a3a"/>
+      <polygon points="40,50 20,100 60,100" fill="#2a6a4a"/>
+      <ellipse cx="40" cy="15" rx="5" ry="3" fill="#fff" opacity="0.8"/>
+      <ellipse cx="25" cy="55" rx="6" ry="3" fill="#fff" opacity="0.6"/>
+      <ellipse cx="55" cy="70" rx="5" ry="3" fill="#fff" opacity="0.6"/>
+    </svg>
+  </div>`;
+
+  sceneryHTML += `<div style="position:absolute;bottom:15%;right:10%;width:clamp(40px,10vw,80px);z-index:5;">
+    <svg viewBox="0 0 70 140" style="width:100%;">
+      <rect x="30" y="100" width="8" height="40" fill="#5a3a1a" rx="3"/>
+      <polygon points="35,10 8,55 62,55" fill="#1a4a2a"/>
+      <polygon points="35,25 12,75 58,75" fill="#1a5a3a"/>
+      <polygon points="35,40 18,90 52,90" fill="#2a6a4a"/>
+      <ellipse cx="35" cy="15" rx="4" ry="3" fill="#fff" opacity="0.8"/>
+    </svg>
+  </div>`;
+
+  // Snowman
+  sceneryHTML += `<div style="position:absolute;bottom:18%;left:55%;z-index:6;">
+    <svg viewBox="0 0 60 80" style="width:clamp(40px,10vw,70px);">
+      <circle cx="30" cy="60" r="18" fill="#fff"/>
+      <circle cx="30" cy="38" r="13" fill="#fff"/>
+      <circle cx="30" cy="22" r="10" fill="#fff"/>
+      <!-- Eyes -->
+      <circle cx="26" cy="20" r="1.5" fill="#333"/>
+      <circle cx="34" cy="20" r="1.5" fill="#333"/>
+      <!-- Nose (carrot) -->
+      <polygon points="30,22 42,23 30,25" fill="#FF8C00"/>
+      <!-- Mouth -->
+      <path d="M25 27 Q30 30 35 27" stroke="#333" stroke-width="1" fill="none"/>
+      <!-- Hat -->
+      <rect x="20" y="8" width="20" height="3" rx="1" fill="#333"/>
+      <rect x="23" y="0" width="14" height="10" rx="2" fill="#333"/>
+      <!-- Scarf -->
+      <rect x="22" y="28" width="16" height="5" rx="2" fill="#ff6b9d"/>
+      <rect x="34" y="28" width="5" height="15" rx="2" fill="#ff6b9d"/>
+      <!-- Buttons -->
+      <circle cx="30" cy="33" r="1.5" fill="#333"/>
+      <circle cx="30" cy="42" r="1.5" fill="#333"/>
+      <circle cx="30" cy="52" r="1.5" fill="#333"/>
+      <!-- Stick arms -->
+      <line x1="17" y1="38" x2="5" y2="30" stroke="#5a3a1a" stroke-width="2" stroke-linecap="round"/>
+      <line x1="43" y1="38" x2="55" y2="30" stroke="#5a3a1a" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </div>`;
+
+  // Small snow houses
+  sceneryHTML += `<div style="position:absolute;bottom:10%;right:25%;z-index:4;">
+    <svg viewBox="0 0 50 40" style="width:clamp(30px,7vw,50px);">
+      <rect x="5" y="15" width="40" height="25" fill="#e8d8c0" rx="2"/>
+      <polygon points="5,15 25,0 45,15" fill="#fff"/>
+      <rect x="20" y="25" width="10" height="15" fill="#654321" rx="2"/>
+    </svg>
+  </div>`;
+
+  terrain.innerHTML = terrainHTML;
+  scenery.innerHTML = sceneryHTML;
+}
+
+function buildCastleScenery() {
+  const terrain = document.getElementById('castleTerrain');
+  let terrainHTML = '';
+
+  // Rocky ground
+  terrainHTML += `<div style="position:absolute;bottom:0;left:0;right:0;height:30%;background:linear-gradient(180deg,#1a1a2e,#0a0a1e);"></div>`;
+
+  // Stone path
+  terrainHTML += `<div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:20%;height:30%;background:linear-gradient(180deg,#2a2a3e,#1a1a2e);clip-path:polygon(30% 100%,0 0,100% 0,70% 100%);"></div>`;
+
+  // Rocks
+  const rockPositions = [[10,70],[85,68],[20,75],[75,72],[5,65],[92,67]];
+  rockPositions.forEach(([x,y]) => {
+    terrainHTML += `<div style="position:absolute;bottom:${y}%;left:${x}%;font-size:${16+Math.random()*12}px;opacity:0.5;pointer-events:none;z-index:3;">🪨</div>`;
+  });
+
+  terrain.innerHTML = terrainHTML;
+}
+
+// ====== STAR FIELD GENERATOR ======
+function generateStarField(containerId, count) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    const x = Math.random() * 100;
+    const y = Math.random() * 60;
+    const size = 1 + Math.random() * 3;
+    const dur = 1 + Math.random() * 3;
+    const delay = Math.random() * 3;
+    html += `<div class="star-dot" style="left:${x}%;top:${y}%;width:${size}px;height:${size}px;--dur:${dur}s;animation-delay:${delay}s;"></div>`;
+  }
+  container.innerHTML = html;
+}
+
+// ====== INIT ======
+function init() {
+  // Intro stars
+  const starsContainer = document.getElementById('introStars');
+  for (let i = 0; i < 100; i++) {
+    const star = document.createElement('div');
+    star.className = 'intro-star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.setProperty('--dur', (1.5 + Math.random() * 3) + 's');
+    star.style.animationDelay = Math.random() * 3 + 's';
+    star.style.width = star.style.height = (1 + Math.random() * 3) + 'px';
+    starsContainer.appendChild(star);
+  }
+
+  // Build scenery for each scene
+  buildSpringScenery();
+  buildSummerScenery();
+  buildAutumnScenery();
+  buildWinterScenery();
+  buildCastleScenery();
+
+  // Generate star fields
+  generateStarField('summerStars', 60);
+  generateStarField('castleStars', 120);
+
+  // Place characters
+  const isMobile = window.innerWidth < 600;
+  const charSize = isMobile ? 0.65 : 0.9;
+  scenes.forEach(scene => {
+    const chars = document.getElementById(scene + 'Chars');
+    if (chars) {
+      chars.innerHTML = `<span class="character">${createPrincessSVG(charSize)}</span><span class="character">${createKnightSVG(charSize)}</span>`;
+    }
+    clickCount[scene] = 0;
+  });
+
+  // Click handlers
+  scenes.forEach(scene => {
+    const el = document.getElementById(scene);
+    if (el) el.addEventListener('click', handleSceneClick);
+  });
+}
+
+// ====== START STORY ======
+function startStory() {
+  showScene(0);
+}
+
+// ====== SHOW SCENE ======
+function showScene(index) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('intro').classList.remove('active');
+
+  const sceneName = scenes[index];
+  document.getElementById(sceneName).classList.add('active');
+  currentScene = index;
+
+  document.getElementById('sceneDots').style.display = 'flex';
+  document.getElementById('musicToggle').style.display = 'flex';
+  document.querySelectorAll('.scene-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === index);
+  });
+
+  clickCount[sceneName] = 0;
+  document.getElementById(sceneName + 'Particles').innerHTML = '';
+  hideDialogue(sceneName);
+  document.getElementById(sceneName + 'Hint').style.display = 'block';
+  document.getElementById(sceneName + 'Narration').classList.remove('show');
+
+  // Show first dialogue after delay
+  setTimeout(() => {
+    const data = sceneData[sceneName].clicks[0];
+    showDialogue(sceneName, data.dialogue);
+    document.getElementById(sceneName + 'Narration').textContent = data.narration;
+    document.getElementById(sceneName + 'Narration').classList.add('show');
+  }, 1200);
+
+  // Start ambient particles
+  startAmbientParticles(sceneName);
+
+  if (musicPlaying && audioCtx) audioCtx.resume();
+}
+
+// ====== HANDLE CLICK ======
+function handleSceneClick(e) {
+  if (currentScene < 0) return;
+  const sceneName = scenes[currentScene];
+  const data = sceneData[sceneName];
+  const count = clickCount[sceneName];
+  if (count >= data.clicks.length) return;
+
+  const clickData = data.clicks[count];
+  clickCount[sceneName]++;
+
+  spawnParticles(e.clientX, e.clientY, clickData.emoji, clickData.count);
+  showDialogue(sceneName, clickData.dialogue);
+  document.getElementById(sceneName + 'Narration').textContent = clickData.narration;
+  document.getElementById(sceneName + 'Narration').classList.add('show');
+  document.getElementById(sceneName + 'Hint').style.display = 'none';
+  playClickSound();
+
+  if (clickCount[sceneName] >= data.clicks.length && sceneName !== 'castle') {
+    setTimeout(() => nextScene(), 3500);
+  }
+}
+
+// ====== SPAWN PARTICLES ======
+function spawnParticles(x, y, emoji, count) {
+  const container = document.createElement('div');
+  container.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:25;overflow:hidden;';
+  document.body.appendChild(container);
+
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.textContent = emoji;
+    p.style.cssText = `position:absolute;font-size:${16+Math.random()*20}px;left:${x}px;top:${y}px;animation:floatUp ${1+Math.random()*1.5}s ease-out ${i*0.06}s forwards;`;
+    const angle = (Math.PI * 2 * i) / count + (Math.random()-0.5)*0.5;
+    const dist = 50 + Math.random() * 120;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist - 60;
+    p.style.setProperty('--ty', ty+'px');
+    p.style.setProperty('--end', (0.3+Math.random()*0.5).toFixed(2));
+    container.appendChild(p);
+  }
+  setTimeout(() => container.remove(), 3500);
+}
+
+// ====== AMBIENT PARTICLES ======
+function startAmbientParticles(sceneName) {
+  if (ambientTimers[sceneName]) clearInterval(ambientTimers[sceneName]);
+
+  const container = document.getElementById(sceneName + 'Particles');
+  if (!container) return;
+
+  const types = {
+    spring: ['🌸','🌺','🌷','🌼'],
+    summer: ['✨','💫','🌟','⭐'],
+    autumn: ['🍂','🍁','🍃'],
+    winter: ['❄️','❅','✦'],
+    castle: ['⭐','🌟','💫','✨']
+  };
+  const emojis = types[sceneName] || ['✨'];
+
+  ambientTimers[sceneName] = setInterval(() => {
+    if (!document.getElementById(sceneName)?.classList.contains('active')) {
+      clearInterval(ambientTimers[sceneName]);
+      return;
+    }
+    const p = document.createElement('div');
+    p.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    p.style.cssText = `position:absolute;font-size:${10+Math.random()*12}px;left:${Math.random()*100}%;top:${50+Math.random()*40}%;animation:floatUp ${3+Math.random()*5}s ease-out forwards;--ty:${-80-Math.random()*200}px;--end:0.2;`;
+    container.appendChild(p);
+    setTimeout(() => p.remove(), 9000);
+  }, 350);
+}
+
+// ====== DIALOGUE ======
+function showDialogue(sceneName, data) {
+  const bubble = document.getElementById(sceneName + 'Dialogue');
+  bubble.innerHTML = `<span class="dialogue-speaker">${data.speaker}：</span>${data.text}`;
+  bubble.classList.add('show');
+  setTimeout(() => bubble.classList.remove('show'), 4500);
+}
+function hideDialogue(sceneName) {
+  const bubble = document.getElementById(sceneName + 'Dialogue');
+  if (bubble) bubble.classList.remove('show');
+}
+
+// ====== NAVIGATION ======
+function nextScene() {
+  if (currentScene < scenes.length - 1) showScene(currentScene + 1);
+}
+function prevScene() {
+  if (currentScene > 0) showScene(currentScene - 1);
+}
+function goToScene(index) { showScene(index); }
+function restartStory() {
+  document.getElementById('sceneDots').style.display = 'none';
+  document.getElementById('musicToggle').style.display = 'none';
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('intro').classList.add('active');
+  currentScene = -1;
+}
+
+// ====== SOUND ======
+function playClickSound() {
+  if (!audioCtx) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.1);
+    osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.25);
+  } catch(e) {}
+}
+
+function toggleMusic() {
+  if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if (musicPlaying) {
+    musicPlaying = false;
+    document.getElementById('musicToggle').textContent = '🔇';
+    musicNodes.forEach(n => { try { n.stop(); } catch(e){} });
+    musicNodes = [];
+  } else {
+    musicPlaying = true;
+    document.getElementById('musicToggle').textContent = '🎵';
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    playAmbientMusic();
+  }
+}
+
+function playAmbientMusic() {
+  if (!musicPlaying || !audioCtx) return;
+  const notes = [261.63,293.66,329.63,392.00,440.00,523.25];
+  const melody = [0,2,4,3,2,0,1,3,5,4,2,0,1,2,4,3];
+  let ni = 0;
+  function pn() {
+    if (!musicPlaying) return;
+    const freq = notes[melody[ni % melody.length]];
+    ni++;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    filter.type = 'lowpass';
+    filter.frequency.value = 1200;
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime+0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+1.2);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime+1.3);
+    musicNodes.push(osc);
+    if (musicNodes.length > 20) musicNodes.shift();
+    setTimeout(pn, 750);
+  }
+  pn();
+  const pad = audioCtx.createOscillator();
+  const padGain = audioCtx.createGain();
+  const padFilter = audioCtx.createBiquadFilter();
+  pad.type = 'sine';
+  pad.frequency.value = 130.81;
+  padFilter.type = 'lowpass';
+  padFilter.frequency.value = 400;
+  padGain.gain.value = 0.025;
+  pad.connect(padFilter);
+  padFilter.connect(padGain);
+  padGain.connect(audioCtx.destination);
+  pad.start();
+  musicNodes.push(pad);
+}
+
+// ====== KEYBOARD ======
+document.addEventListener('keydown', (e) => {
+  if (e.key==='ArrowRight'||e.key===' ') nextScene();
+  if (e.key==='ArrowLeft') prevScene();
+});
+
+// ====== START ======
+init();
+</script>
+</body>
+</html>
